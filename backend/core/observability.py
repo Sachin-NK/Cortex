@@ -28,6 +28,25 @@ class TraceEvent:
     message: str = ""
     metadata: dict = field(default_factory=dict)
 
+    def to_dict(self) -> dict:
+        """Serialise the event to a plain dict for JSON logging."""
+        return {
+            "event_type": self.event_type,
+            "timestamp": self.timestamp,
+            "workflow_id": self.workflow_id,
+            "task_id": self.task_id,
+            "agent": self.agent,
+            "provider": self.provider,
+            "model": self.model,
+            "input_tokens": self.input_tokens,
+            "output_tokens": self.output_tokens,
+            "cost_usd": self.cost_usd,
+            "latency_ms": self.latency_ms,
+            "status": self.status,
+            "message": self.message,
+            "metadata": self.metadata,
+        }
+
 
 @dataclass
 class ExecutionTrace:
