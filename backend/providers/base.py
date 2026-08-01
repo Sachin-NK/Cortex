@@ -34,6 +34,10 @@ class ProviderMeta:
     capabilities: ModelCapabilities = field(default_factory=ModelCapabilities)
     status: ProviderStatus = ProviderStatus.UNKNOWN
 
+    def is_available(self) -> bool:
+        """Return True when the provider is healthy or degraded but still usable."""
+        return self.status in (ProviderStatus.HEALTHY, ProviderStatus.DEGRADED)
+
 
 @dataclass
 class LLMRequest:
