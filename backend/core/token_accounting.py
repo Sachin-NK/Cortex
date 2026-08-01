@@ -25,6 +25,11 @@ class UsageRecord:
     cost_usd: float = 0.0
     latency_ms: int = 0
 
+    @property
+    def total_tokens(self) -> int:
+        """Sum of input, output, and cached token counts."""
+        return self.input_tokens + self.output_tokens + self.cached_tokens
+
 
 @dataclass
 class ClaudeBudgetPolicy:
