@@ -29,6 +29,10 @@ class ProviderConfig:
     api_key: str = ""             # user-supplied key (overrides .env)
     default_model: str = ""
     max_tokens_per_call: int = 0   # 0 = unlimited
+
+    def has_api_key(self) -> bool:
+        """Return True if an API key has been configured for this provider."""
+        return bool(self.api_key and self.api_key.strip())
     max_cost_per_day_usd: float = 0.0  # 0 = unlimited
     monthly_budget_usd: float = 0.0    # 0 = unlimited
     allowed_task_types: List[str] = field(default_factory=list)
