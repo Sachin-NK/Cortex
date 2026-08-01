@@ -30,6 +30,8 @@ from .mcp.orchestrator import MCPOrchestrator
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+VERSION = "2.0.0"
+
 # ── Allowed origins ────────────────────────────────────────────────────────────
 # In production set ALLOWED_ORIGINS env var to your Vercel URL, e.g.:
 #   ALLOWED_ORIGINS=https://cortex-ide.vercel.app,https://mycortex.vercel.app
@@ -107,7 +109,7 @@ async def startup():
     registry.discover()
     if providers:
         asyncio.create_task(router.refresh_health())
-    logger.info(f"Cortex started — providers: {list(providers.keys())}")
+    logger.info(f"Cortex v{VERSION} started — providers: {list(providers.keys())}")
 
 
 # ── Request schemas ────────────────────────────────────────────────────────────
