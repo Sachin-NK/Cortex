@@ -10,6 +10,8 @@ class KimiProvider(BaseProvider):
         self.client = AsyncOpenAI(api_key=api_key, base_url="https://api.moonshot.cn/v1")
         self.default_model = model
 
+    SUPPORTED_MODELS = ["moonshot-v1-8k", "moonshot-v1-32k", "moonshot-v1-128k"]
+
     @property
     def meta(self) -> ProviderMeta:
         return ProviderMeta(
