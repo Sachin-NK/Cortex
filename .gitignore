@@ -1,0 +1,51 @@
+# ── Secrets — NEVER commit these ──────────────────────────────────────────────
+.env
+.env.local
+.env.production
+*.env
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+*.db
+*.sqlite3
+/tmp/
+
+# ── Node / Frontend ───────────────────────────────────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+# ── IDE / OS ──────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+
+# ── Test / CI cache ───────────────────────────────────────────────────────────
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# ── Workspace files (user-specific) ───────────────────────────────────────────
+cortex_workspace/
+diagnose.py
+read_pdf.py
+install_deps.ps1
+run_cortex.ps1
+check_import.ps1
+check.bat
+install_and_run.bat
