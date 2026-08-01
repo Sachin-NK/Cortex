@@ -95,6 +95,14 @@ class WorkflowRun:
     created_at: float = field(default_factory=time.time)
     updated_at: float = field(default_factory=time.time)
 
+    def failed_steps(self) -> list[str]:
+        """Return a list of step IDs that ended in a FAILED status."""
+        return [sid for sid, r in self.results.items() if r.status == StepStatus.FAILED]
+
+    def is_complete(self) -> bool:
+        """Return True when the run is no longer in PENDING or RUNNING state."""
+        return self.status not in (StepStatus.PENDING, StepStatus.RUNNING)
+
 
 # ── SQLite checkpoint store ───────────────────────────────────────────────────
 
