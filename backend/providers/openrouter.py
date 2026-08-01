@@ -18,6 +18,7 @@ OPENROUTER_MODELS = [
     "anthropic/claude-sonnet-4-5",
     "google/gemini-1.5-pro",
     "google/gemini-1.5-flash",
+    "google/gemini-2.5-pro",
     "deepseek/deepseek-chat",
     "meta-llama/llama-3.1-70b-instruct",
     "mistralai/mistral-large",
