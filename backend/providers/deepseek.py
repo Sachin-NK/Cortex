@@ -10,6 +10,8 @@ class DeepSeekProvider(BaseProvider):
         self.client = AsyncOpenAI(api_key=api_key, base_url="https://api.deepseek.com/v1")
         self.default_model = model
 
+    SUPPORTED_MODELS = ["deepseek-chat", "deepseek-coder", "deepseek-reasoner"]
+
     @property
     def meta(self) -> ProviderMeta:
         return ProviderMeta(
