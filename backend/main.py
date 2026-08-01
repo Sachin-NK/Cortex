@@ -1194,6 +1194,9 @@ async def get_optimization_config():
 
 @app.post("/optimization/config")
 async def save_optimization_config(req: OptimizationConfigRequest):
+    valid_optimize_for = {"cost", "quality", "latency", "balanced"}
+    if req.optimize_for not in valid_optimize_for:
+        raise HTTPException(status_code=400, detail=f"optimize_for must be one of {sorted(valid_optimize_for)}")
     cfg = {
         "orchestrator": req.orchestrator,
         "orchestrator_role": req.orchestrator_role,
