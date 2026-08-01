@@ -1,4 +1,3 @@
-from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
