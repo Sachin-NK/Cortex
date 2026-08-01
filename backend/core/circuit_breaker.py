@@ -31,6 +31,16 @@ class CircuitBreaker:
 
     @property
     def state(self) -> CircuitState:
+        """Return current circuit state, auto-transitioning to HALF_OPEN after recovery timeout."""
+        if self._state == CircuitState.OPEN:
+            if time.time() - self._opened_at >= self.recovery_timeout:
+                self._state = CircuitState.HALF_OPEN
+                self._success_count = 0
+                logger.info(f"[circuit_breaker] {self.provider_id}: OPEN → HALF_OPEN")
+        return self._state
+
+    @property
+    def state(self) -> CircuitState:
         if self._state == CircuitState.OPEN:
             if time.time() - self._opened_at >= self.recovery_timeout:
                 self._state = CircuitState.HALF_OPEN
