@@ -43,6 +43,9 @@ DEFAULT_REGISTRY: dict[str, dict] = {
             {"id": "gemini-1.5-flash", "context_window": 1000000, "input_cost": 0.000075, "output_cost": 0.0003,
              "capabilities": {"vision": True, "tools": True, "structured_output": True, "streaming": True, "reasoning": False, "code": True},
              "recommended_tasks": ["general", "documentation"]},
+            {"id": "gemini-2.5-pro", "context_window": 1000000, "input_cost": 0.00125, "output_cost": 0.005,
+             "capabilities": {"vision": True, "tools": True, "structured_output": True, "streaming": True, "reasoning": True, "code": True},
+             "recommended_tasks": ["repository_analysis", "architecture_design", "multimodal_analysis"]},
         ],
     },
     "deepseek": {
