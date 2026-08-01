@@ -35,6 +35,14 @@ class RoutingDecision:
     estimated_latency_ms: int
     task_classification: Optional[TaskClassification] = None
 
+    def summary(self) -> str:
+        """Return a one-line human-readable summary of this routing decision."""
+        return (
+            f"{self.provider_id}/{self.model} "
+            f"(est. ${self.estimated_cost_usd:.4f}, ~{self.estimated_latency_ms}ms) "
+            f"— {self.reason}"
+        )
+
 
 class TaskRouter:
     def __init__(
