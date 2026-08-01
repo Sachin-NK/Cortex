@@ -98,6 +98,16 @@ BUILTIN_AGENTS: dict[str, WorkflowDefinition] = {
             _step("Test", "qa engineer", "Write tests that verify the fix:\n{context}", provider="deepseek"),
         ],
     ),
+    "test_generator": WorkflowDefinition(
+        id="test_generator", name="Test Generator", description="Generate comprehensive unit and integration tests",
+        tags=["code", "testing"],
+        steps=[
+            _step("Analyse", "code analyst", "Understand the code under test and identify coverage gaps:\n{input}", provider="gemini"),
+            _step("Unit Tests", "test engineer", "Write thorough unit tests for:\n{context}", provider="deepseek"),
+            _step("Edge Cases", "qa engineer", "Add edge-case and boundary tests for:\n{context}", provider="openai"),
+            _step("Review", "senior developer", "Review and improve test quality:\n{context}", provider="anthropic"),
+        ],
+    ),
 }
 
 
