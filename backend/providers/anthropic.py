@@ -10,6 +10,12 @@ class AnthropicProvider(BaseProvider):
         self.client = anthropic.AsyncAnthropic(api_key=api_key)
         self.default_model = model
 
+    # ── Supported models ────────────────────────────────────────────────────
+    SUPPORTED_MODELS = [
+        "claude-opus-4-5", "claude-sonnet-4-5", "claude-haiku-3-5",
+        "claude-3-5-sonnet-20241022", "claude-3-haiku-20240307",
+    ]
+
     @property
     def meta(self) -> ProviderMeta:
         return ProviderMeta(
