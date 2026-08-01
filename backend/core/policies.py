@@ -29,6 +29,10 @@ class Policy:
     avoid_providers: list[str] = field(default_factory=list)
     # Max latency acceptable in ms
     max_latency_ms: Optional[int] = None
+
+    def is_provider_allowed(self, provider_id: str) -> bool:
+        """Return False if the provider is explicitly avoided by this policy."""
+        return provider_id not in self.avoid_providers
     # Require on-prem / local models
     local_only: bool = False
     # Custom weights for scoring (quality, cost, latency) — must sum to 1.0
