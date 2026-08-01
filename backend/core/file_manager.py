@@ -29,6 +29,23 @@ def _safe_path(workspace: str, rel_path: str) -> Path:
 
 
 @dataclass
+class FileInfo:
+    name: str
+    path: str
+    is_dir: bool
+    size_bytes: int = 0
+    extension: str = ""
+
+    @classmethod
+    def from_path(cls, root: str, full_path: Path) -> "FileInfo":
+        rel = str(full_path.relative_to(root))
+        return cls(
+            name=full_path.name,
+            path=rel,
+            is_dir=full_path.is_dir(),
+            size_bytes=full_path.stat().st_size if full_path.is_file() else 0,
+            extension=full_path.suffix.lstrip(".") if full_path.is_file() else "",
+        )
 class FileEntry:
     name: str
     path: str          # relative to workspace root
