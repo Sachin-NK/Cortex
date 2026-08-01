@@ -12,6 +12,7 @@ MOCK_RESPONSES = {
     "code": "```python\ndef solution():\n    # Mock implementation\n    return {'status': 'ok'}\n```",
     "review": '{"summary": "Mock review", "issues": [], "severity": "low", "recommendation": "Looks good"}',
     "document": "# Mock Documentation\n\nThis is a mock documentation response for testing.",
+    "test": "```python\ndef test_solution():\n    assert solution() == {'status': 'ok'}\n```",
     "default": "This is a mock response from the test provider. No real API call was made.",
 }
 
