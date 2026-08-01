@@ -58,6 +58,12 @@ class Session:
     total_cost_usd: float = 0.0
     total_tokens: int = 0
 
+    def add_message(self, message: Message) -> None:
+        """Append a message and update running cost/token totals."""
+        self.messages.append(message)
+        self.total_cost_usd += message.cost_usd
+        self.total_tokens += message.tokens
+
 
 class MemoryStore:
     def __init__(self):
