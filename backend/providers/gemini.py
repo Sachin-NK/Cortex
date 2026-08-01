@@ -21,6 +21,11 @@ class GeminiProvider(BaseProvider):
     def __init__(self, api_key: str, model: str = "gemini-1.5-pro"):
         super().__init__(api_key)
         self.default_model = model
+
+    SUPPORTED_MODELS = [
+        "gemini-1.5-pro", "gemini-1.5-flash",
+        "gemini-2.0-flash", "gemini-2.5-pro",
+    ]
         if _NEW_SDK:
             from google import genai as _genai
             self._client = _genai.Client(api_key=api_key)
