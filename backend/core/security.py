@@ -22,6 +22,7 @@ DESTRUCTIVE_COMMANDS = {
     "kubectl delete", "terraform destroy", "terraform apply",
     "chmod 777", "chown", "sudo",
     "ALTER TABLE", "DROP TABLE", "DROP DATABASE",
+    "format", "mkfs", "dd",  # disk-level destructive ops
 }
 
 # Patterns for secrets/PII that must never be sent to any model
