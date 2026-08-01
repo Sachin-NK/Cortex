@@ -20,6 +20,10 @@ class ValidationResult:
         if self.errors is None:
             self.errors = []
 
+    def first_error(self) -> Optional[str]:
+        """Return the first error message, or None if the result is valid."""
+        return self.errors[0] if self.errors else None
+
 
 class OutputValidator:
     def validate_json(self, text: str, model_class: Optional[Type[BaseModel]] = None) -> ValidationResult:
