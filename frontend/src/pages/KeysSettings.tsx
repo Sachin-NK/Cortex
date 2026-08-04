@@ -1,352 +1,272 @@
-import { useEffect, useState } from 'react'
-import { api } from '../api'
-import type { UserProvider, UserProviderConfig } from '../api'
-import {
-  Key, ChevronDown, ChevronUp, Eye, EyeOff, ExternalLink,
-  Save, Trash2, Loader2, Check, AlertTriangle, Circle,
-} from 'lucide-react'
+﻿import { useState, useEffect } from 'react'
+import { Key, Eye, EyeOff, Check, Trash2, ExternalLink, AlertTriangle, Shield, Save, Circle } from 'lucide-react'
+import { keyStore, PROVIDER_DEFS } from '../api'
+import type { StoredKey } from '../api'
 
-// ── Privacy tier selector ────────────────────────────────────────────────────
 const TIERS = [
-  { id: 'standard',  label: 'Standard',  desc: 'All providers enabled. Best quality and lowest cost.' },
-  { id: 'sensitive', label: 'Sensitive', desc: 'Only GDPR-compliant providers. No OpenAI.' },
-  { id: 'strict',    label: 'Strict',    desc: 'Local/on-premise providers only. Maximum privacy.' },
+  { id: 'standard',  label: 'Standard',  desc: 'All providers available. Best for general use.' },
+  { id: 'sensitive', label: 'Sensitive', desc: 'Skips DeepSeek and Kimi. Use for proprietary code.' },
+  { id: 'strict',    label: 'Strict',    desc: 'Anthropic only. Best for confidential data.' },
 ]
 
-const PROVIDER_COLORS: Record<string, string> = {
-  openai: 'bg-green-500',
-  anthropic: 'bg-orange-500',
-  gemini: 'bg-blue-500',
-  deepseek: 'bg-purple-500',
-  kimi: 'bg-cyan-500',
-  openrouter: 'bg-pink-500',
-}
-
-function HealthDot({ status }: { status: string }) {
-  const color = status === 'healthy' ? 'text-green-400 fill-green-400'
-    : status === 'degraded' ? 'text-yellow-400 fill-yellow-400'
-    : 'text-gray-600 fill-gray-600'
-  return <Circle size={8} className={color} />
-}
-
-function StatusBadge({ provider }: { provider: UserProvider }) {
-  if (provider.is_active) return (
-    <span className="px-2 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400 border border-green-500/30">Active</span>
-  )
-  if (provider.is_configured) return (
-    <span className="px-2 py-0.5 rounded-full text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">Configured</span>
-  )
-  return (
-    <span className="px-2 py-0.5 rounded-full text-xs bg-gray-700 text-gray-500 border border-gray-700">Not configured</span>
-  )
-}
-
-// ── Per-provider card ────────────────────────────────────────────────────────
-function ProviderCard({
-  provider, taskTypesList, onSaved, onDeleted,
-}: {
-  provider: UserProvider
-  taskTypesList: string[]
-  onSaved: () => void
-  onDeleted: () => void
+function ProviderCard({ def, stored, onSave, onDelete }: {
+  def: typeof PROVIDER_DEFS[0]
+  stored: StoredKey | null
+  onSave: (id: string, key: string) => void
+  onDelete: (id: string) => void
 }) {
   const [expanded, setExpanded] = useState(false)
+  const [keyInput, setKeyInput] = useState('')
   const [showKey, setShowKey] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [deleting, setDeleting] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [enabled, setEnabled] = useState(stored?.enabled ?? true)
 
-  const blank: UserProviderConfig = {
-    enabled: true, api_key: '', default_model: provider.models[0] ?? '',
-    max_tokens_per_call: 0, max_cost_per_day_usd: 0, monthly_budget_usd: 0,
-    allowed_task_types: [], blocked_task_types: [], notes: '',
-  }
-  const [cfg, setCfg] = useState<UserProviderConfig>(provider.config ?? blank)
+  useEffect(() => {
+    setEnabled(stored?.enabled ?? true)
+  }, [stored])
 
-  // Sync when provider changes from parent reload
-  useEffect(() => { setCfg(provider.config ?? blank) }, [provider.id])
-
-  const update = (patch: Partial<UserProviderConfig>) => setCfg(c => ({ ...c, ...patch }))
-
-  const toggleTaskType = (list: 'allowed_task_types' | 'blocked_task_types', tt: string) => {
-    setCfg(c => {
-      const current = c[list]
-      return { ...c, [list]: current.includes(tt) ? current.filter(x => x !== tt) : [...current, tt] }
-    })
+  const save = () => {
+    const k = keyInput.trim()
+    if (!k) return
+    onSave(def.id, k)
+    setKeyInput('')
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
   }
 
-  const save = async () => {
-    setSaving(true)
-    try {
-      await api.saveUserProvider(provider.id, cfg)
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2000)
-      onSaved()
-    } catch (e: any) { alert(e.message) }
-    finally { setSaving(false) }
+  const toggleEnabled = () => {
+    const next = !enabled
+    setEnabled(next)
+    keyStore.setEnabled(def.id, next)
   }
 
-  const deleteConfig = async () => {
-    if (!confirm(`Delete user config for ${provider.name}?`)) return
-    setDeleting(true)
-    try { await api.deleteUserProvider(provider.id); onDeleted() }
-    catch (e: any) { alert(e.message) }
-    finally { setDeleting(false) }
-  }
-
-  const colorBar = PROVIDER_COLORS[provider.id] ?? 'bg-gray-600'
+  const masked = stored?.key ? stored.key.slice(0, 8) + '•'.repeat(12) + stored.key.slice(-4) : ''
+  const isSet = !!(stored?.key)
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-      {/* Clickable header */}
-      <button
-        onClick={() => setExpanded(e => !e)}
-        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-800/50 transition-colors text-left"
-      >
-        <div className={`w-2.5 h-8 rounded-full ${colorBar} shrink-0`} />
+    <div className="rounded-xl overflow-hidden" style={{ background: '#111114', border: '1px solid #1e1e24' }}>
+      <button onClick={() => setExpanded(e => !e)}
+        className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors"
+        style={{ background: expanded ? '#1a1a1f' : 'transparent' }}
+        onMouseEnter={e => { if (!expanded) (e.currentTarget as HTMLElement).style.background = '#1a1a1f' }}
+        onMouseLeave={e => { if (!expanded) (e.currentTarget as HTMLElement).style.background = 'transparent' }}>
+        <div className="w-2.5 h-8 rounded-full shrink-0" style={{ background: def.color }} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-medium text-sm">{provider.name}</span>
-            <StatusBadge provider={provider} />
-            <span className="flex items-center gap-1 text-xs text-gray-500">
-              <HealthDot status={provider.health} /> {provider.health}
-            </span>
+            <span className="text-sm font-medium" style={{ color: '#e4e4e7' }}>{def.name}</span>
+            {isSet ? (
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs"
+                style={{ background: enabled ? '#14532d' : '#1c1917', color: enabled ? '#4ade80' : '#78716c', border: `1px solid ${enabled ? '#166534' : '#292524'}` }}>
+                <Circle size={5} className={enabled ? 'fill-green-400' : 'fill-stone-500'} />
+                {enabled ? 'Active' : 'Disabled'}
+              </span>
+            ) : (
+              <span className="px-2 py-0.5 rounded-full text-xs"
+                style={{ background: '#1c1917', color: '#78716c', border: '1px solid #292524' }}>
+                Not configured
+              </span>
+            )}
           </div>
-          <p className="text-xs text-gray-600 mt-0.5">
-            {provider.key_source === 'env' ? 'Key from .env' : provider.key_source === 'user' ? 'User-supplied key' : 'No key set'}
-            {' · '}{provider.models.length} models
-          </p>
+          {isSet && (
+            <p className="text-xs mt-0.5 font-mono" style={{ color: '#52525b' }}>{masked}</p>
+          )}
         </div>
-        {expanded ? <ChevronUp size={15} className="text-gray-500 shrink-0" /> : <ChevronDown size={15} className="text-gray-500 shrink-0" />}
+        <span className="text-xs shrink-0" style={{ color: '#52525b' }}>
+          {expanded ? 'collapse' : 'configure'}
+        </span>
       </button>
 
-      {/* Anthropic warning */}
-      {provider.id === 'anthropic' && expanded && (
-        <div className="mx-4 mb-3 px-3 py-2 bg-orange-500/10 border border-orange-500/30 rounded-lg flex items-start gap-2">
-          <AlertTriangle size={14} className="text-orange-400 mt-0.5 shrink-0" />
-          <p className="text-xs text-orange-300">
-            Claude is the orchestrator. Limit its usage via the Claude Budget in routing settings, not by disabling it entirely.
-          </p>
-        </div>
-      )}
-
-      {/* Expanded body */}
       {expanded && (
-        <div className="px-4 pb-4 space-y-4 border-t border-gray-800 pt-4">
-          {/* Enable toggle */}
-          <div className="flex items-center justify-between">
-            <label className="text-sm text-gray-300">Enabled</label>
-            <button
-              onClick={() => update({ enabled: !cfg.enabled })}
-              className={`relative inline-flex h-5 w-9 rounded-full transition-colors ${cfg.enabled ? 'bg-indigo-600' : 'bg-gray-700'}`}
-            >
-              <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transform transition-transform mt-0.5 ${cfg.enabled ? 'translate-x-4' : 'translate-x-0.5'}`} />
-            </button>
-          </div>
+        <div className="px-4 pb-4 pt-2 space-y-4" style={{ borderTop: '1px solid #1e1e24' }}>
+          {def.id === 'anthropic' && (
+            <div className="flex items-start gap-2 px-3 py-2 rounded-lg"
+              style={{ background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.2)' }}>
+              <AlertTriangle size={13} style={{ color: '#f97316', marginTop: 1, flexShrink: 0 }} />
+              <p className="text-xs" style={{ color: '#fed7aa' }}>
+                Claude is the orchestrator. Limit its usage via Optimization settings rather than disabling it.
+              </p>
+            </div>
+          )}
 
-          {/* API Key */}
+          {isSet && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm" style={{ color: '#a1a1aa' }}>Enable this provider</span>
+              <button onClick={toggleEnabled}
+                className="relative inline-flex h-5 w-9 rounded-full transition-colors"
+                style={{ background: enabled ? '#6366f1' : '#3f3f46' }}>
+                <span className="inline-block h-4 w-4 rounded-full bg-white shadow transform transition-transform mt-0.5"
+                  style={{ transform: enabled ? 'translateX(16px)' : 'translateX(2px)' }} />
+              </button>
+            </div>
+          )}
+
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-xs text-gray-400">API Key</label>
-              {provider.docs_url && (
-                <a href={provider.docs_url} target="_blank" rel="noreferrer"
-                  className="flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300">
-                  Get key <ExternalLink size={10} />
-                </a>
-              )}
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs" style={{ color: '#71717a' }}>
+                {isSet ? 'Replace API key' : 'API Key'}
+              </label>
+              <a href={def.docsUrl} target="_blank" rel="noreferrer"
+                className="flex items-center gap-1 text-xs transition-colors"
+                style={{ color: '#6366f1' }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#818cf8'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#6366f1'}>
+                Get key <ExternalLink size={10} />
+              </a>
             </div>
             <div className="flex gap-2">
               <input
                 type={showKey ? 'text' : 'password'}
-                value={cfg.api_key}
-                onChange={e => update({ api_key: e.target.value })}
-                placeholder={provider.has_env_key ? '(using .env key)' : provider.has_user_key ? '(user key set)' : 'sk-…'}
-                className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
+                value={keyInput}
+                onChange={e => setKeyInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && save()}
+                placeholder={def.hint}
+                className="flex-1 px-3 py-2 rounded-lg text-sm font-mono outline-none"
+                style={{ background: '#0d0d0f', border: '1px solid #2a2a35', color: '#e4e4e7' }}
+                onFocus={e => (e.target as HTMLElement).style.borderColor = '#6366f1'}
+                onBlur={e => (e.target as HTMLElement).style.borderColor = '#2a2a35'}
               />
-              <button onClick={() => setShowKey(s => !s)} className="p-2 bg-gray-800 border border-gray-700 rounded-lg hover:bg-gray-700">
-                {showKey ? <EyeOff size={15} className="text-gray-400" /> : <Eye size={15} className="text-gray-400" />}
+              <button onClick={() => setShowKey(s => !s)}
+                className="px-2.5 rounded-lg transition-colors"
+                style={{ background: '#1a1a1f', border: '1px solid #2a2a35', color: '#71717a' }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#e4e4e7'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#71717a'}>
+                {showKey ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+              <button onClick={save} disabled={!keyInput.trim()}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                style={{ background: keyInput.trim() ? '#6366f1' : '#1a1a1f', color: keyInput.trim() ? '#fff' : '#52525b' }}
+                onMouseEnter={e => { if (keyInput.trim()) (e.currentTarget as HTMLElement).style.background = '#4f46e5' }}
+                onMouseLeave={e => { if (keyInput.trim()) (e.currentTarget as HTMLElement).style.background = '#6366f1' }}>
+                {saved ? <Check size={14} style={{ color: '#4ade80' }} /> : <Save size={14} />}
+                {saved ? 'Saved!' : 'Save'}
               </button>
             </div>
-            <p className="mt-1 text-xs text-gray-600">Source: {provider.env_key_name} · {provider.key_source}</p>
+            <p className="mt-1.5 text-xs" style={{ color: '#3f3f46' }}>
+              Stored in your browser only. Never sent to our servers. Used as a request header per call.
+            </p>
           </div>
 
-          {/* Default model */}
-          <div>
-            <label className="text-xs text-gray-400 mb-1 block">Default Model</label>
-            <select
-              value={cfg.default_model}
-              onChange={e => update({ default_model: e.target.value })}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            >
-              {provider.models.map(m => <option key={m} value={m}>{m}</option>)}
-            </select>
+          <div className="flex flex-wrap gap-1.5">
+            {def.models.slice(0, 4).map(m => (
+              <span key={m} className="px-2 py-0.5 rounded text-xs font-mono"
+                style={{ background: '#1a1a1f', color: '#71717a', border: '1px solid #2a2a35' }}>
+                {m.split('/').pop()}
+              </span>
+            ))}
           </div>
 
-          {/* Usage limits */}
-          <div>
-            <p className="text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wider">Usage Limits</p>
-            <div className="grid grid-cols-3 gap-3">
-              {([
-                { key: 'max_tokens_per_call' as const, label: 'Max tokens/call', hint: '0 = unlimited' },
-                { key: 'max_cost_per_day_usd' as const, label: 'Max cost/day ($)', hint: '0 = unlimited' },
-                { key: 'monthly_budget_usd' as const, label: 'Monthly budget ($)', hint: '0 = unlimited' },
-              ] as const).map(({ key, label, hint }) => (
-                <div key={key}>
-                  <label className="text-xs text-gray-500 mb-1 block">{label}</label>
-                  <input
-                    type="number" min="0" step={key === 'max_tokens_per_call' ? '1000' : '0.01'}
-                    value={cfg[key]}
-                    onChange={e => update({ [key]: parseFloat(e.target.value) || 0 } as any)}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  />
-                  <p className="text-xs text-gray-700 mt-0.5">{hint}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Task routing */}
-          {taskTypesList.length > 0 && (
-            <div className="grid grid-cols-2 gap-4">
-              {([
-                { key: 'allowed_task_types' as const, label: 'Allowed task types', hint: 'empty = all allowed' },
-                { key: 'blocked_task_types' as const, label: 'Blocked task types', hint: 'explicitly blocked' },
-              ] as const).map(({ key, label, hint }) => (
-                <div key={key}>
-                  <p className="text-xs font-medium text-gray-400 mb-1">{label} <span className="text-gray-600">({hint})</span></p>
-                  <div className="space-y-0.5 max-h-32 overflow-y-auto pr-1">
-                    {taskTypesList.map(tt => (
-                      <label key={tt} className="flex items-center gap-2 text-xs text-gray-400 hover:text-gray-200 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={cfg[key].includes(tt)}
-                          onChange={() => toggleTaskType(key, tt)}
-                          className="rounded bg-gray-800 border-gray-700 text-indigo-500 focus:ring-indigo-500"
-                        />
-                        {tt}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Notes */}
-          <div>
-            <label className="text-xs text-gray-400 mb-1 block">Notes</label>
-            <textarea
-              value={cfg.notes}
-              onChange={e => update({ notes: e.target.value })}
-              rows={2}
-              placeholder="Optional notes about this provider config…"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            />
-          </div>
-
-          {/* Actions */}
-          <div className="flex gap-2 pt-1">
-            <button
-              onClick={save}
-              disabled={saving}
-              className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm transition-colors disabled:opacity-50"
-            >
-              {saving ? <Loader2 size={14} className="animate-spin" /> : saved ? <Check size={14} className="text-green-300" /> : <Save size={14} />}
-              {saved ? 'Saved!' : 'Save'}
+          {isSet && (
+            <button onClick={() => { onDelete(def.id); setExpanded(false) }}
+              className="flex items-center gap-1.5 text-xs transition-colors px-2 py-1 rounded"
+              style={{ color: '#ef4444' }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.1)'}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+              <Trash2 size={12} /> Remove key
             </button>
-            {provider.config && (
-              <button
-                onClick={deleteConfig}
-                disabled={deleting}
-                className="flex items-center gap-1.5 px-3 py-2 bg-red-900/40 hover:bg-red-900/70 border border-red-800/50 rounded-lg text-sm text-red-400 transition-colors disabled:opacity-50"
-              >
-                {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-                Delete config
-              </button>
-            )}
-          </div>
+          )}
         </div>
       )}
     </div>
   )
 }
 
-// ── Page ─────────────────────────────────────────────────────────────────────
 export default function KeysSettings() {
-  const [providers, setProviders] = useState<UserProvider[]>([])
-  const [taskTypes, setTaskTypes] = useState<string[]>([])
-  const [loading, setLoading] = useState(true)
-  const [tier, setTier] = useState('standard')
+  const [keys, setKeys] = useState<Record<string, StoredKey | null>>({})
+  const [tier, setTier] = useState(() => localStorage.getItem('cortex_privacy_tier') ?? 'standard')
 
-  const load = async () => {
-    setLoading(true)
-    try {
-      const [p, tt] = await Promise.all([api.userProviders(), api.taskTypes()])
-      setProviders(p)
-      setTaskTypes(tt)
-    } catch (e: any) {
-      console.error('Failed to load providers:', e)
-    } finally {
-      setLoading(false)
-    }
+  const reload = () => {
+    const result: Record<string, StoredKey | null> = {}
+    for (const p of PROVIDER_DEFS) result[p.id] = keyStore.get(p.id)
+    setKeys(result)
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { reload() }, [])
+
+  const handleSave = (id: string, key: string) => {
+    keyStore.set(id, key)
+    reload()
+  }
+
+  const handleDelete = (id: string) => {
+    keyStore.remove(id)
+    reload()
+  }
+
+  const handleTier = (t: string) => {
+    setTier(t)
+    localStorage.setItem('cortex_privacy_tier', t)
+  }
+
+  const configuredCount = PROVIDER_DEFS.filter(p => keys[p.id]?.key).length
 
   return (
-    <div className="p-8 max-w-3xl mx-auto">
+    <div className="p-8 max-w-2xl mx-auto">
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-1">
-          <Key size={20} className="text-indigo-400" />
-          <h2 className="text-2xl font-bold">API Keys &amp; Providers</h2>
+        <div className="flex items-center gap-3 mb-1.5">
+          <Key size={20} style={{ color: '#6366f1' }} />
+          <h2 className="text-2xl font-bold" style={{ color: '#e4e4e7' }}>API Keys</h2>
         </div>
-        <p className="text-sm text-gray-500">Configure your AI provider keys and usage limits</p>
+        <p className="text-sm" style={{ color: '#71717a' }}>
+          Your keys are stored in your browser only and sent directly to AI providers.
+          They never touch our servers except as request headers.
+        </p>
+        {configuredCount === 0 && (
+          <div className="mt-3 flex items-start gap-2 px-3 py-2.5 rounded-lg"
+            style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)' }}>
+            <AlertTriangle size={14} style={{ color: '#818cf8', marginTop: 1, flexShrink: 0 }} />
+            <p className="text-xs" style={{ color: '#a5b4fc' }}>
+              No keys configured yet. Add at least one to start using Cortex.
+              OpenRouter gives access to 100+ models with a single key.
+            </p>
+          </div>
+        )}
+        {configuredCount > 0 && (
+          <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-lg"
+            style={{ background: '#0d1f14', border: '1px solid #166534' }}>
+            <Check size={13} style={{ color: '#4ade80' }} />
+            <p className="text-xs" style={{ color: '#86efac' }}>
+              {configuredCount} provider{configuredCount > 1 ? 's' : ''} configured. Cortex is ready.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Privacy tier */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-6">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Privacy Tier</p>
-        <div className="grid grid-cols-3 gap-3">
+      <div className="rounded-xl p-4 mb-6" style={{ background: '#111114', border: '1px solid #1e1e24' }}>
+        <div className="flex items-center gap-2 mb-3">
+          <Shield size={14} style={{ color: '#6366f1' }} />
+          <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#71717a' }}>Privacy Tier</p>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
           {TIERS.map(t => (
-            <button
-              key={t.id}
-              onClick={() => setTier(t.id)}
-              className={`px-3 py-2.5 rounded-lg text-sm text-left transition-colors border ${
-                tier === t.id
-                  ? 'bg-indigo-600/20 border-indigo-600 text-indigo-300'
-                  : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
-              }`}
-            >
-              <p className="font-medium">{t.label}</p>
-              <p className="text-xs mt-0.5 opacity-70">{t.desc}</p>
+            <button key={t.id} onClick={() => handleTier(t.id)}
+              className="px-3 py-2.5 rounded-lg text-left text-sm transition-colors"
+              style={{
+                background: tier === t.id ? 'rgba(99,102,241,0.15)' : '#0d0d0f',
+                border: `1px solid ${tier === t.id ? '#6366f1' : '#2a2a35'}`,
+                color: tier === t.id ? '#c7d2fe' : '#71717a',
+              }}>
+              <p className="font-medium text-xs">{t.label}</p>
+              <p className="text-xs mt-0.5 opacity-70 leading-tight">{t.desc}</p>
             </button>
           ))}
         </div>
       </div>
 
       {/* Provider cards */}
-      {loading ? (
-        <div className="flex items-center gap-2 text-gray-500 py-8 justify-center">
-          <Loader2 size={18} className="animate-spin" />
-          <span>Loading providers…</span>
-        </div>
-      ) : providers.length === 0 ? (
-        <div className="text-center text-gray-600 py-8">
-          <p>No providers found. Ensure the backend is running.</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {providers.map(p => (
-            <ProviderCard
-              key={p.id}
-              provider={p}
-              taskTypesList={taskTypes}
-              onSaved={load}
-              onDeleted={load}
-            />
-          ))}
-        </div>
-      )}
+      <div className="space-y-2">
+        {PROVIDER_DEFS.map(def => (
+          <ProviderCard key={def.id} def={def} stored={keys[def.id] ?? null}
+            onSave={handleSave} onDelete={handleDelete} />
+        ))}
+      </div>
+
+      <div className="mt-6 px-4 py-3 rounded-xl text-xs leading-relaxed"
+        style={{ background: '#0d0d0f', border: '1px solid #1e1e24', color: '#52525b' }}>
+        Keys are saved using <code style={{ color: '#71717a' }}>localStorage</code> in your browser.
+        They are sent as HTTP headers with each request so the backend can use them to call AI providers directly.
+        Clearing your browser data will remove them.
+      </div>
     </div>
   )
 }

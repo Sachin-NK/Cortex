@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { api } from '../api'
 import type { MCPTool, Policy } from '../api'
 import { Shield, Wrench, BookOpen, CheckCircle, AlertCircle, Info } from 'lucide-react'
@@ -63,7 +63,7 @@ export default function Settings() {
     <div className="p-8 max-w-3xl mx-auto space-y-8">
       <h2 className="text-2xl font-bold">Settings</h2>
 
-      {/* ── API Key Setup ─────────────────────────────────────── */}
+      {/* -- API Key Setup --------------------------------------- */}
       <section>
         <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
           Provider API Keys
@@ -116,7 +116,7 @@ export default function Settings() {
         </div>
       </section>
 
-      {/* ── Privacy Tier ──────────────────────────────────────── */}
+      {/* -- Privacy Tier ---------------------------------------- */}
       <section>
         <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-1">
           Privacy Tier
@@ -146,7 +146,7 @@ export default function Settings() {
         </div>
       </section>
 
-      {/* ── Routing Policies ──────────────────────────────────── */}
+      {/* -- Routing Policies ------------------------------------ */}
       <section>
         <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
           Routing Policies
@@ -171,7 +171,7 @@ export default function Settings() {
         </div>
       </section>
 
-      {/* ── MCP Developer Tools ───────────────────────────────── */}
+      {/* -- MCP Developer Tools --------------------------------- */}
       <section>
         <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
           <Wrench size={13} /> MCP Developer Tools
@@ -193,7 +193,7 @@ export default function Settings() {
         </div>
       </section>
 
-      {/* ── About ─────────────────────────────────────────────── */}
+      {/* -- About ----------------------------------------------- */}
       <section>
         <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
           <BookOpen size={13} /> About

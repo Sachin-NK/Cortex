@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Depends
+﻿from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 VERSION = "2.0.0"
 
-# ── Allowed origins ────────────────────────────────────────────────────────────
+# -- Allowed origins ------------------------------------------------------------
 # In production set ALLOWED_ORIGINS env var to your Vercel URL, e.g.:
 #   ALLOWED_ORIGINS=https://cortex-ide.vercel.app,https://mycortex.vercel.app
 _raw_origins = os.getenv("ALLOWED_ORIGINS", "*")
@@ -53,7 +53,7 @@ app.add_middleware(
 )
 
 
-# ── Bootstrap ──────────────────────────────────────────────────────────────────
+# -- Bootstrap ------------------------------------------------------------------
 def _build_providers() -> dict:
     configs = {
         "openai":     ("OPENAI_API_KEY",     "gpt-4o"),
@@ -75,7 +75,47 @@ def _build_providers() -> dict:
 
 
 providers      = _build_providers()
-registry       = ModelRegistry()
+
+
+# -- Per-request provider injection -------------------------------------------
+# Users send their own API keys as request headers so keys never touch the server.
+# Header format:  X-OpenAI-Key, X-Anthropic-Key, X-Gemini-Key,
+#                 X-Deepseek-Key, X-Kimi-Key, X-Openrouter-Key
+_PROVIDER_HEADER_MAP = {
+    "openai":     ("X-OpenAI-Key",     "gpt-4o"),
+    "anthropic":  ("X-Anthropic-Key",  "claude-opus-4-5"),
+    "gemini":     ("X-Gemini-Key",     "gemini-1.5-pro"),
+    "deepseek":   ("X-Deepseek-Key",   "deepseek-chat"),
+    "kimi":       ("X-Kimi-Key",        "moonshot-v1-128k"),
+    "openrouter": ("X-Openrouter-Key", "openai/gpt-4o-mini"),
+}
+
+
+def _get_request_providers(request: Request) -> dict:
+    """
+    Merge server-level providers (.env) with user-supplied keys from headers.
+    User keys take priority and are used only for this request — never stored.
+    """
+    req_providers = dict(providers)
+    for pid, (header, default_model) in _PROVIDER_HEADER_MAP.items():
+        user_key = request.headers.get(header, "").strip()
+        if user_key and pid in PROVIDER_MAP:
+            try:
+                req_providers[pid] = PROVIDER_MAP[pid](api_key=user_key, model=default_model)
+            except Exception as exc:
+                logger.warning(f"Could not init provider '{pid}' with user key: {exc}")
+    return req_providers
+
+
+def _build_request_router(req_providers: dict) -> TaskRouter:
+    """Lightweight router scoped to a single request's provider set."""
+    return TaskRouter(
+        req_providers,
+        registry=registry,
+        accountant=accountant,
+        trace_store=trace_store,
+        security_engine=security,
+    )
 accountant     = TokenAccountant(ClaudeBudgetPolicy())
 trace_store    = TraceStore()
 security       = SecurityEngine()
@@ -91,7 +131,7 @@ mcp            = MCPOrchestrator()
 validator      = OutputValidator()
 classifier     = TaskClassifier()
 
-# ── Health cache ───────────────────────────────────────────────────────────────
+# -- Health cache ---------------------------------------------------------------
 _health_cache_ttl     = 30
 _health_last_checked: float = 0.0
 
@@ -112,7 +152,7 @@ async def startup():
     logger.info(f"Cortex v{VERSION} started — providers: {list(providers.keys())}")
 
 
-# ── Request schemas ────────────────────────────────────────────────────────────
+# -- Request schemas ------------------------------------------------------------
 
 class ChatRequest(BaseModel):
     session_id: Optional[str] = None
@@ -144,7 +184,7 @@ class MemoryWriteRequest(BaseModel):
     ttl_seconds: Optional[int] = None
 
 
-# ── Health ─────────────────────────────────────────────────────────────────────
+# -- Health ---------------------------------------------------------------------
 
 @app.get("/health")
 async def health():
@@ -156,10 +196,12 @@ async def health():
     }
 
 
-# ── Chat ───────────────────────────────────────────────────────────────────────
+# -- Chat -----------------------------------------------------------------------
 
 @app.post("/chat")
-async def chat(req: ChatRequest):
+async def chat(req: ChatRequest, request: Request):
+    req_providers = _get_request_providers(request)
+    req_router = _build_request_router(req_providers) if req_providers != providers else router
     safe_msg = security.validate_prompt(req.message)
 
     session = memory.get_session(req.session_id) if req.session_id else None
@@ -192,8 +234,8 @@ async def chat(req: ChatRequest):
 
     if req.stream:
         async def generate():
-            decision = await router.route(llm_req, policy, workflow_id=session.id)
-            p = providers.get(decision.provider_id)
+            decision = await req_router.route(llm_req, policy, workflow_id=session.id)
+            p = req_providers.get(decision.provider_id)
             if not p:
                 yield "data: [ERROR: no provider]\n\n"
                 return
@@ -202,7 +244,7 @@ async def chat(req: ChatRequest):
             yield "data: [DONE]\n\n"
         return StreamingResponse(generate(), media_type="text/event-stream")
 
-    response, decision = await router.execute_with_fallback(
+    response, decision = await req_router.execute_with_fallback(
         llm_req, policy, workflow_id=session.id, agent="chat", trace=trace,
     )
 
@@ -247,7 +289,7 @@ async def chat(req: ChatRequest):
     }
 
 
-# ── Agents ─────────────────────────────────────────────────────────────────────
+# -- Agents ---------------------------------------------------------------------
 
 @app.get("/agents")
 async def list_agents(tag: Optional[str] = None):
@@ -338,7 +380,7 @@ async def get_run_output(run_id: str):
     return {"run_id": run_id, "final_output": final, "step_outputs": outputs}
 
 
-# ── Providers & Models ─────────────────────────────────────────────────────────
+# -- Providers & Models ---------------------------------------------------------
 
 @app.get("/providers")
 async def list_providers():
@@ -381,14 +423,14 @@ async def list_policies():
     ]
 
 
-# ── Costs & Accounting ─────────────────────────────────────────────────────────
+# -- Costs & Accounting ---------------------------------------------------------
 
 @app.get("/costs")
 async def costs_report(workflow_id: Optional[str] = None):
     return accountant.get_report(workflow_id)
 
 
-# ── Traces ─────────────────────────────────────────────────────────────────────
+# -- Traces ---------------------------------------------------------------------
 
 @app.get("/traces")
 async def list_traces():
@@ -403,7 +445,7 @@ async def get_trace(trace_id: str):
     return trace.to_dict()
 
 
-# ── MCP Tools ──────────────────────────────────────────────────────────────────
+# -- MCP Tools ------------------------------------------------------------------
 
 @app.get("/mcp/tools")
 async def list_mcp_tools():
@@ -427,7 +469,7 @@ async def invoke_mcp_tool(tool_id: str, args: dict = {}):
     }
 
 
-# ── Sessions ───────────────────────────────────────────────────────────────────
+# -- Sessions -------------------------------------------------------------------
 
 @app.get("/sessions")
 async def list_sessions():
@@ -444,7 +486,7 @@ async def delete_session(session_id: str):
     return {"deleted": True}
 
 
-# ── Memory ─────────────────────────────────────────────────────────────────────
+# -- Memory ---------------------------------------------------------------------
 
 @app.post("/memory")
 async def write_memory(req: MemoryWriteRequest):
@@ -483,7 +525,7 @@ async def delete_memory_entry(entry_id: str):
     return {"deleted": True}
 
 
-# ── Security ───────────────────────────────────────────────────────────────────
+# -- Security -------------------------------------------------------------------
 
 @app.get("/security")
 async def security_summary():
@@ -496,7 +538,7 @@ async def redact_test(text: str):
     return {"original_length": len(text), "redacted": security.redact_secrets(text)}
 
 
-# ── Dashboard ──────────────────────────────────────────────────────────────────
+# -- Dashboard ------------------------------------------------------------------
 
 @app.get("/dashboard")
 async def dashboard():
@@ -624,7 +666,7 @@ async def get_workspace():
     return {"workspace": file_mgr.workspace_path}
 
 
-# ── AI Code Actions ────────────────────────────────────────────────────────────
+# -- AI Code Actions ------------------------------------------------------------
 
 class CodeActionRequest(BaseModel):
     action: str                          # explain | refactor | fix | test | document | complete | chat
@@ -637,7 +679,7 @@ class CodeActionRequest(BaseModel):
     policy: PolicyType = PolicyType.BALANCED
 
 
-# ── Language-specific system prompts ──────────────────────────────────────────
+# -- Language-specific system prompts ------------------------------------------
 _LANG_RULES: Dict[str, str] = {
     "python": (
         "Use Python 3.10+ idioms. Prefer dataclasses, type hints on every function signature, "

@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 """
 Model Router — selects provider+model using the task classification,
 routing policy from the model registry, circuit breakers, privacy tier,
@@ -131,7 +131,7 @@ class TaskRouter:
 
         return score
 
-    # ── Context compression ───────────────────────────────────────────────────
+    # -- Context compression ---------------------------------------------------
 
     async def _compress_for_claude(
         self,
@@ -238,7 +238,7 @@ class TaskRouter:
             logger.warning(f"Context compression failed: {e} — using original")
             return request
 
-    # ── Routing ───────────────────────────────────────────────────────────────
+    # -- Routing ---------------------------------------------------------------
 
     async def route(
         self,
@@ -312,7 +312,7 @@ class TaskRouter:
             task_classification=classification,
         )
 
-    # ── Execution ─────────────────────────────────────────────────────────────
+    # -- Execution -------------------------------------------------------------
 
     async def execute_with_fallback(
         self,

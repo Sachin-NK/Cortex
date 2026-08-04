@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
@@ -23,7 +23,7 @@ function StatCard({ label, value, sub, icon: Icon, color }: {
   )
 }
 
-// ── Orchestrator efficiency gauge — works for any LLM, not just Claude ────────
+// -- Orchestrator efficiency gauge — works for any LLM, not just Claude --------
 function OrchestratorGauge({ orchestrator, pct, delegated, savings }: {
   orchestrator: string; pct: number; delegated: number; savings: number
 }) {

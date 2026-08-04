@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { api, MCPTool } from '../api'
 import {
   Wrench, Play, Loader2, ChevronRight, Code2, FileSearch,
   Globe, GitCompare, Hash, FileText, Search, TestTube,
 } from 'lucide-react'
 
-// ── Tool icon mapping ─────────────────────────────────────────────────────────
+// -- Tool icon mapping ---------------------------------------------------------
 const TOOL_ICONS: Record<string, any> = {
   code_lint: Code2,
   json_validate: FileSearch,
@@ -20,7 +20,7 @@ const TOOL_ICONS: Record<string, any> = {
   run_tests: TestTube,
 }
 
-// ── JSON syntax highlighter (simple) ─────────────────────────────────────────
+// -- JSON syntax highlighter (simple) -----------------------------------------
 function JsonOutput({ value }: { value: unknown }) {
   const text = JSON.stringify(value, null, 2)
   // Simple colorize: strings green, numbers yellow, booleans/null purple
@@ -38,7 +38,7 @@ function JsonOutput({ value }: { value: unknown }) {
   )
 }
 
-// ── Tool input forms ──────────────────────────────────────────────────────────
+// -- Tool input forms ----------------------------------------------------------
 const MODELS = ['claude-3-5-haiku-20241022', 'gpt-4o-mini', 'gemini-1.5-flash', 'gpt-4o', 'claude-3-5-sonnet-20241022']
 const LANGUAGES = ['python', 'javascript', 'typescript', 'go', 'rust', 'java', 'cpp', 'c', 'ruby', 'php', 'bash']
 
@@ -200,7 +200,7 @@ function ToolForm({
   )
 }
 
-// ── Page ─────────────────────────────────────────────────────────────────────
+// -- Page ---------------------------------------------------------------------
 export default function ToolsPlayground() {
   const [tools, setTools] = useState<MCPTool[]>([])
   const [selected, setSelected] = useState<MCPTool | null>(null)

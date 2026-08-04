@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+﻿import { useState, useRef, useEffect } from 'react'
 import {
   X, Copy, Check, Loader2, Sparkles, CornerDownLeft, ChevronDown,
   MessageSquare, Code2, Eye, ChevronRight, ChevronLeft,
@@ -281,7 +281,7 @@ export default function AIPanel({ currentFile, currentLanguage, initialAction, o
         </div>
       )}
 
-      {/* ── Chat mode ─────────────────────────────────────── */}
+      {/* -- Chat mode --------------------------------------- */}
       {mode === 'chat' && (
         <>
           <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">

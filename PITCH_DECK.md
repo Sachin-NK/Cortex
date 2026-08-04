@@ -1,4 +1,4 @@
-# CORTEX — Pitch Deck
+﻿# CORTEX — Pitch Deck
 ### Multi-Model AI Agent Harness
 
 ---
@@ -40,12 +40,12 @@
 User Request
      │
      ▼
-┌─────────────────────────────────────┐
+┌-------------------------------------┐
 │           CORTEX ROUTER             │
 │                                     │
 │  Classify → Score → Route → Run     │
 │  Circuit Breaker → Fallback Chain   │
-└─────────────────────────────────────┘
+└-------------------------------------┘
      │          │          │          │          │
      ▼          ▼          ▼          ▼          ▼
   OpenAI   Anthropic   Gemini   DeepSeek    Kimi

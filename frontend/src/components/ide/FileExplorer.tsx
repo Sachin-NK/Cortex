@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+﻿import { useState, useCallback } from 'react'
 import {
   FolderOpen, Folder, FileText, Plus, FolderPlus, RefreshCw, FolderInput,
   ChevronRight, ChevronDown,
@@ -6,7 +6,7 @@ import {
 import type { FileEntry } from '../../api'
 import ContextMenu from './ContextMenu'
 
-// ── File icon color by extension ──────────────────────────────────────────────
+// -- File icon color by extension ----------------------------------------------
 function fileColor(name: string): string {
   const ext = name.split('.').pop()?.toLowerCase() ?? ''
   if (['ts','tsx'].includes(ext)) return '#3b82f6'
@@ -21,7 +21,7 @@ function fileColor(name: string): string {
   return '#71717a'
 }
 
-// ── Single tree node ──────────────────────────────────────────────────────────
+// -- Single tree node ----------------------------------------------------------
 interface NodeProps {
   entry: FileEntry
   depth: number
@@ -75,7 +75,7 @@ function FileNode({ entry, depth, active, modified, onOpen, onCtxMenu }: NodePro
   )
 }
 
-// ── Explorer panel ────────────────────────────────────────────────────────────
+// -- Explorer panel ------------------------------------------------------------
 interface Props {
   tree: FileEntry[]
   workspace: string

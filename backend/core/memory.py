@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 """
 Memory subsystem with separate scopes:
   - workflow   : scoped to a single workflow run
@@ -72,7 +72,7 @@ class MemoryStore:
             scope: [] for scope in MemoryScope
         }
 
-    # ── Session management ─────────────────────────────────────────────────
+    # -- Session management -------------------------------------------------
     def create_session(self, metadata: Optional[dict] = None) -> Session:
         session = Session(id=str(uuid.uuid4()), metadata=metadata or {})
         self._sessions[session.id] = session
@@ -117,7 +117,7 @@ class MemoryStore:
             "providers_used": list({m.provider for m in session.messages if m.provider}),
         }
 
-    # ── Scoped memory ──────────────────────────────────────────────────────
+    # -- Scoped memory ------------------------------------------------------
     def remember(
         self,
         key: str,

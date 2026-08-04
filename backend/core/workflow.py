@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 """
 Workflow Engine — executes multi-step AI pipelines with:
   - Sequential and parallel steps
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 _DB_PATH = os.getenv("CORTEX_STATE_DB", "/tmp/cortex_state.db")
 
 
-# ── Data models ───────────────────────────────────────────────────────────────
+# -- Data models ---------------------------------------------------------------
 
 class StepStatus(str, Enum):
     PENDING = "pending"
@@ -104,7 +104,7 @@ class WorkflowRun:
         return self.status not in (StepStatus.PENDING, StepStatus.RUNNING)
 
 
-# ── SQLite checkpoint store ───────────────────────────────────────────────────
+# -- SQLite checkpoint store ---------------------------------------------------
 
 class CheckpointStore:
     """Persist workflow runs to SQLite so they can be resumed after restart."""
@@ -206,7 +206,7 @@ class CheckpointStore:
             return False
 
 
-# ── Workflow Engine ───────────────────────────────────────────────────────────
+# -- Workflow Engine -----------------------------------------------------------
 
 class WorkflowEngine:
     def __init__(self, router, checkpoint_store: Optional[CheckpointStore] = None):
@@ -215,7 +215,7 @@ class WorkflowEngine:
         self._approval_callbacks: dict[str, asyncio.Event] = {}
         self._checkpoints = checkpoint_store or CheckpointStore()
 
-    # ── Run lifecycle ─────────────────────────────────────────────────────────
+    # -- Run lifecycle ---------------------------------------------------------
 
     def create_run(self, workflow: WorkflowDefinition, initial_input: str) -> WorkflowRun:
         run = WorkflowRun(
@@ -267,7 +267,7 @@ class WorkflowEngine:
         self._runs[run.id] = run
         return run
 
-    # ── Approval ──────────────────────────────────────────────────────────────
+    # -- Approval --------------------------------------------------------------
 
     async def approve_step(self, run_id: str, step_id: str) -> None:
         key = f"{run_id}:{step_id}"
@@ -275,7 +275,7 @@ class WorkflowEngine:
         if event:
             event.set()
 
-    # ── Execution ─────────────────────────────────────────────────────────────
+    # -- Execution -------------------------------------------------------------
 
     async def execute(
         self,
@@ -503,7 +503,7 @@ class WorkflowEngine:
             cost_usd=response.cost_usd,
         )
 
-    # ── Serialization ─────────────────────────────────────────────────────────
+    # -- Serialization ---------------------------------------------------------
 
     def serialize_run(self, run: WorkflowRun) -> dict:
         return {

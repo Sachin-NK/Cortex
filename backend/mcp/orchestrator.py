@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 """
 MCP Tool Orchestrator — developer-focused tools that integrate with
 real APIs and utilities useful in an AI coding assistant context.
@@ -51,7 +51,7 @@ class MCPOrchestrator:
     def _register_builtin_tools(self):
         """Register developer-focused built-in tools."""
 
-        # ── Code lint (pyflakes-style checks) ────────────────────────────
+        # -- Code lint (pyflakes-style checks) ----------------------------
         async def code_lint(code: str, language: str = "python") -> dict:
             if language != "python":
                 return {"language": language, "issues": [], "note": f"Linting not supported for {language} yet"}
@@ -81,7 +81,7 @@ class MCPOrchestrator:
                 "status": "pass" if not issues else "fail",
             }
 
-        # ── JSON validate & pretty-print ──────────────────────────────────
+        # -- JSON validate & pretty-print ----------------------------------
         async def json_validate(text: str) -> dict:
             import json
             try:
@@ -91,7 +91,7 @@ class MCPOrchestrator:
             except json.JSONDecodeError as e:
                 return {"valid": False, "error": str(e), "pretty": None}
 
-        # ── Regex tester ──────────────────────────────────────────────────
+        # -- Regex tester --------------------------------------------------
         async def regex_test(pattern: str, test_string: str, flags: str = "") -> dict:
             import re
             flag_map = {"i": re.IGNORECASE, "m": re.MULTILINE, "s": re.DOTALL}
@@ -110,7 +110,7 @@ class MCPOrchestrator:
             except re.error as e:
                 return {"error": f"Invalid regex: {e}", "matches": []}
 
-        # ── Hash text ─────────────────────────────────────────────────────
+        # -- Hash text -----------------------------------------------------
         async def hash_text(text: str, algorithm: str = "sha256") -> dict:
             import hashlib
             algo = algorithm.lower().replace("-", "")
@@ -121,7 +121,7 @@ class MCPOrchestrator:
                 supported = ["md5", "sha1", "sha256", "sha512", "sha3_256"]
                 return {"error": f"Unknown algorithm '{algorithm}'", "supported": supported}
 
-        # ── Base64 encode/decode ──────────────────────────────────────────
+        # -- Base64 encode/decode ------------------------------------------
         async def base64_encode(text: str, operation: str = "encode") -> dict:
             import base64
             try:
@@ -133,7 +133,7 @@ class MCPOrchestrator:
             except Exception as e:
                 return {"error": str(e)}
 
-        # ── UUID generator ────────────────────────────────────────────────
+        # -- UUID generator ------------------------------------------------
         async def uuid_generate(version: int = 4, count: int = 1) -> dict:
             import uuid as _uuid
             generators = {1: _uuid.uuid1, 4: _uuid.uuid4}
@@ -143,7 +143,7 @@ class MCPOrchestrator:
             uuids = [str(generators[version]()) for _ in range(count)]
             return {"version": version, "count": count, "uuids": uuids}
 
-        # ── Timestamp ─────────────────────────────────────────────────────
+        # -- Timestamp -----------------------------------------------------
         async def timestamp(format: str = "iso") -> dict:
             from datetime import datetime, timezone
             now = datetime.now(timezone.utc)
@@ -159,7 +159,7 @@ class MCPOrchestrator:
                 return formats
             return {"format": format, "value": formats.get(format, now.isoformat())}
 
-        # ── URL parser ────────────────────────────────────────────────────
+        # -- URL parser ----------------------------------------------------
         async def url_parse(url: str) -> dict:
             from urllib.parse import urlparse, parse_qs
             try:
@@ -176,7 +176,7 @@ class MCPOrchestrator:
             except Exception as e:
                 return {"error": str(e)}
 
-        # ── Text diff ─────────────────────────────────────────────────────
+        # -- Text diff -----------------------------------------------------
         async def diff_text(original: str, modified: str, context_lines: int = 3) -> dict:
             import difflib
             diff = list(difflib.unified_diff(
@@ -195,7 +195,7 @@ class MCPOrchestrator:
                 "changed": bool(diff),
             }
 
-        # ── Token estimator ───────────────────────────────────────────────
+        # -- Token estimator -----------------------------------------------
         async def estimate_tokens(text: str, model: str = "gpt-4") -> dict:
             # Rough estimate: ~4 chars per token for English text
             char_count = len(text)
@@ -218,7 +218,7 @@ class MCPOrchestrator:
                 "percentage_used": round(estimated_tokens / limit * 100, 1),
             }
 
-        # ── Web search (Serper — Google Search API) ───────────────────────
+        # -- Web search (Serper — Google Search API) -----------------------
         async def web_search(query: str, num_results: int = 5) -> dict:
             api_key = os.getenv("SERPER_API_KEY")
             if not api_key:
@@ -264,7 +264,7 @@ class MCPOrchestrator:
                 logger.error(f"web_search error: {e}")
                 return {"error": str(e), "query": query, "results": []}
 
-        # ── Register all tools ────────────────────────────────────────────
+        # -- Register all tools --------------------------------------------
         self.register(MCPTool(
             "code_lint", "Code Linter",
             "Lint Python code and report syntax errors, bare excepts, and dangerous patterns",

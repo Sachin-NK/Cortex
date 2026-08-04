@@ -1,4 +1,4 @@
-"""
+﻿"""
 Cortex CLI — command-line interface for the Multi-Model AI Agent Harness.
 
 Usage:
@@ -41,11 +41,11 @@ def _build_providers() -> dict:
     return providers
 
 
-def _separator(char: str = "─", width: int = 70) -> None:
+def _separator(char: str = "-", width: int = 70) -> None:
     print(char * width)
 
 
-# ── providers discover ────────────────────────────────────────────────────────
+# -- providers discover --------------------------------------------------------
 
 async def cmd_providers_discover() -> None:
     from .core.discovery import ModelRegistry
@@ -70,7 +70,7 @@ async def cmd_providers_discover() -> None:
     print()
 
 
-# ── models list ───────────────────────────────────────────────────────────────
+# -- models list ---------------------------------------------------------------
 
 async def cmd_models_list() -> None:
     from .core.discovery import ModelRegistry
@@ -92,7 +92,7 @@ async def cmd_models_list() -> None:
     print()
 
 
-# ── models test ───────────────────────────────────────────────────────────────
+# -- models test ---------------------------------------------------------------
 
 async def cmd_models_test() -> None:
     from .providers.mock import MockProvider
@@ -118,7 +118,7 @@ async def cmd_models_test() -> None:
     print()
 
 
-# ── agents list ───────────────────────────────────────────────────────────────
+# -- agents list ---------------------------------------------------------------
 
 async def cmd_agents_list() -> None:
     from .agents.registry import AgentRegistry
@@ -133,7 +133,7 @@ async def cmd_agents_list() -> None:
     print()
 
 
-# ── workflow run ──────────────────────────────────────────────────────────────
+# -- workflow run --------------------------------------------------------------
 
 async def cmd_workflow_run(
     workflow_name: str,
@@ -222,7 +222,7 @@ async def cmd_workflow_run(
     print(f"  Estimated token savings vs all-Claude: ${savings:.4f}\n")
 
 
-# ── workflow status ───────────────────────────────────────────────────────────
+# -- workflow status -----------------------------------------------------------
 
 async def cmd_workflow_status(run_id: str) -> None:
     from .core.workflow import CheckpointStore
@@ -260,13 +260,13 @@ async def cmd_workflow_status(run_id: str) -> None:
     print()
 
 
-# ── costs report ──────────────────────────────────────────────────────────────
+# -- costs report --------------------------------------------------------------
 
 async def cmd_costs_report() -> None:
     """Prints instructions — live data requires the API server or a workflow run."""
     print("""
   Cost Report
-  ───────────
+  -----------
   Option 1 — Run a workflow from the CLI:
     python -m cortex.backend.cli workflow run rest_api_builder --task "Build API"
 
@@ -280,7 +280,7 @@ async def cmd_costs_report() -> None:
 """)
 
 
-# ── trace show ────────────────────────────────────────────────────────────────
+# -- trace show ----------------------------------------------------------------
 
 async def cmd_trace_show(trace_id: str) -> None:
     if not trace_id:
@@ -289,7 +289,7 @@ async def cmd_trace_show(trace_id: str) -> None:
         return
     print(f"""
   Trace: {trace_id}
-  ─────────────────────────────────────────
+  -----------------------------------------
   Fetch full trace:
     curl http://localhost:8000/traces/{trace_id} | python -m json.tool
 
@@ -297,7 +297,7 @@ async def cmd_trace_show(trace_id: str) -> None:
 """)
 
 
-# ── Entry point ───────────────────────────────────────────────────────────────
+# -- Entry point ---------------------------------------------------------------
 
 def main() -> None:
     from dotenv import load_dotenv

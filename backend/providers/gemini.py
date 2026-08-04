@@ -1,6 +1,6 @@
 from __future__ import annotations
 import time
-from typing import AsyncIterator
+from typing import AsyncIterator, Optional, List, Tuple
 
 try:
     from google import genai
@@ -21,11 +21,6 @@ class GeminiProvider(BaseProvider):
     def __init__(self, api_key: str, model: str = "gemini-1.5-pro"):
         super().__init__(api_key)
         self.default_model = model
-
-    SUPPORTED_MODELS = [
-        "gemini-1.5-pro", "gemini-1.5-flash",
-        "gemini-2.0-flash", "gemini-2.5-pro",
-    ]
         if _NEW_SDK:
             from google import genai as _genai
             self._client = _genai.Client(api_key=api_key)
@@ -40,7 +35,7 @@ class GeminiProvider(BaseProvider):
         return ProviderMeta(
             id="gemini",
             name="Google Gemini",
-            models=["gemini-1.5-pro", "gemini-1.5-flash", "gemini-2.0-flash"],
+            models=["gemini-1.5-pro", "gemini-1.5-flash", "gemini-2.0-flash", "gemini-2.5-pro"],
             cost_per_1k_input=0.00125,
             cost_per_1k_output=0.005,
             avg_latency_ms=900,
@@ -50,10 +45,10 @@ class GeminiProvider(BaseProvider):
             ),
         )
 
-    def _messages_to_text(self, messages: list[dict]) -> tuple[str | None, list[dict], str]:
+    def _messages_to_text(self, messages: List[dict]) -> Tuple[Optional[str], List[dict], str]:
         """Extract system prompt, history, and last user message."""
         system = next((m["content"] for m in messages if m["role"] == "system"), None)
-        history = []
+        history: List[dict] = []
         last_user = ""
         for m in messages:
             if m["role"] == "system":
@@ -75,7 +70,10 @@ class GeminiProvider(BaseProvider):
         if _NEW_SDK and self._client:
             contents = []
             for h in history:
-                contents.append(genai_types.Content(role=h["role"], parts=[genai_types.Part(text=p["text"]) for p in h["parts"]]))
+                contents.append(genai_types.Content(
+                    role=h["role"],
+                    parts=[genai_types.Part(text=p["text"]) for p in h["parts"]],
+                ))
             contents.append(genai_types.Content(role="user", parts=[genai_types.Part(text=prompt)]))
             config = genai_types.GenerateContentConfig(
                 max_output_tokens=request.max_tokens,
@@ -89,8 +87,8 @@ class GeminiProvider(BaseProvider):
             in_tok = resp.usage_metadata.prompt_token_count if resp.usage_metadata else len(prompt.split()) * 2
             out_tok = resp.usage_metadata.candidates_token_count if resp.usage_metadata else len(text.split())
         elif genai is not None:
-            model = genai.GenerativeModel(model_name, system_instruction=system)  # type: ignore
-            chat = model.start_chat(history=history)
+            model_obj = genai.GenerativeModel(model_name, system_instruction=system)  # type: ignore
+            chat = model_obj.start_chat(history=history)
             resp = await chat.send_message_async(prompt)
             text = resp.text
             in_tok = len(prompt.split()) * 2
@@ -99,9 +97,10 @@ class GeminiProvider(BaseProvider):
             raise RuntimeError("No Google AI SDK available. Install google-genai or google-generativeai.")
 
         latency = int((time.time() - start) * 1000)
-        cost = (in_tok / 1000 * self.meta.cost_per_1k_input +
-                out_tok / 1000 * self.meta.cost_per_1k_output)
-
+        cost = (
+            in_tok / 1000 * self.meta.cost_per_1k_input
+            + out_tok / 1000 * self.meta.cost_per_1k_output
+        )
         return LLMResponse(
             content=text, model=model_name, provider="gemini",
             input_tokens=in_tok, output_tokens=out_tok,
@@ -124,8 +123,8 @@ class GeminiProvider(BaseProvider):
                 if chunk.text:
                     yield chunk.text
         elif genai is not None:
-            model = genai.GenerativeModel(model_name)  # type: ignore
-            chat = model.start_chat(history=history)
+            model_obj = genai.GenerativeModel(model_name)  # type: ignore
+            chat = model_obj.start_chat(history=history)
             async for chunk in await chat.send_message_async(prompt, stream=True):
                 if chunk.text:
                     yield chunk.text

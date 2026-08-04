@@ -1,4 +1,4 @@
-import time
+﻿import time
 from typing import AsyncIterator
 from openai import AsyncOpenAI
 from .base import BaseProvider, LLMRequest, LLMResponse, ModelCapabilities, ProviderMeta, ProviderStatus
@@ -10,7 +10,7 @@ class OpenAIProvider(BaseProvider):
         self.client = AsyncOpenAI(api_key=api_key)
         self.default_model = model
 
-    # ── Supported models ────────────────────────────────────────────────────
+    # -- Supported models ----------------------------------------------------
     SUPPORTED_MODELS = [
         "gpt-4o", "gpt-4o-mini", "gpt-4-turbo",
         "o1", "o1-mini", "o3", "o3-mini",

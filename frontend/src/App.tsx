@@ -1,4 +1,5 @@
-import { Routes, Route, NavLink } from 'react-router-dom'
+import { Routes, Route, NavLink, useNavigate, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
 import {
   LayoutDashboard, MessageSquare, Cpu, PlayCircle, Code2,
   Wrench, BarChart3, Activity, Server, Key, Target,
@@ -14,6 +15,8 @@ import ToolsPlayground from './pages/ToolsPlayground'
 import CostAnalytics from './pages/CostAnalytics'
 import KeysSettings from './pages/KeysSettings'
 import OptimizationSettings from './pages/OptimizationSettings'
+import Onboarding from './pages/Onboarding'
+import { keyStore } from './api'
 
 const nav = [
   { to: '/',            label: 'Dashboard',    icon: LayoutDashboard },
@@ -30,6 +33,25 @@ const nav = [
 ]
 
 export default function App() {
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  // Redirect new users to onboarding if no keys set and not already there
+  useEffect(() => {
+    if (location.pathname !== '/setup' && !keyStore.hasAny()) {
+      navigate('/setup', { replace: true })
+    }
+  }, [])
+
+  // Onboarding is full-screen, no sidebar
+  if (location.pathname === '/setup') {
+    return (
+      <Routes>
+        <Route path="/setup" element={<Onboarding />} />
+      </Routes>
+    )
+  }
+
   return (
     <div className="flex h-screen overflow-hidden bg-gray-950 text-gray-100">
       {/* Sidebar */}
@@ -78,6 +100,7 @@ export default function App() {
           <Route path="/providers"    element={<Providers />}            />
           <Route path="/keys"         element={<KeysSettings />}         />
           <Route path="/optimization" element={<OptimizationSettings />} />
+          <Route path="/setup"        element={<Onboarding />}           />
         </Routes>
       </main>
     </div>
