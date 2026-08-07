@@ -75,9 +75,7 @@ def _build_providers() -> dict:
 
 
 providers      = _build_providers()
-
-
-# -- Per-request provider injection -------------------------------------------
+registry       = ModelRegistry()
 # Users send their own API keys as request headers so keys never touch the server.
 # Header format:  X-OpenAI-Key, X-Anthropic-Key, X-Gemini-Key,
 #                 X-Deepseek-Key, X-Kimi-Key, X-Openrouter-Key

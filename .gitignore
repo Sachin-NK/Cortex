@@ -49,3 +49,7 @@ run_cortex.ps1
 check_import.ps1
 check.bat
 install_and_run.bat
+
+# Temp scripts
+push.ps1
+*.ps1
