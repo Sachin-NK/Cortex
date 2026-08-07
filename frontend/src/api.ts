@@ -66,11 +66,9 @@ function buildKeyHeaders(): Record<string, string> {
 }
 
 // -- Base URL ------------------------------------------------------------------
-// In production: set VITE_API_URL=https://your-app.koyeb.app in Vercel dashboard.
-// Locally: Vite dev server proxies /api -> localhost:8000 (no env var needed).
-const BASE = import.meta.env.VITE_API_URL
-  ? (import.meta.env.VITE_API_URL as string).replace(/\/$/, '')
-  : '/api'
+// Always /api — works both locally (Vite dev proxy) and on Vercel (rewrite rule).
+// On Vercel, /api/* is rewritten to the backend service, stripping /api prefix.
+const BASE = '/api'
 
 // -- HTTP helpers (all include user key headers) --------------------------------
 async function get<T>(path: string): Promise<T> {
