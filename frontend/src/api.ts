@@ -66,7 +66,7 @@ function buildKeyHeaders(): Record<string, string> {
 }
 
 // -- Base URL ------------------------------------------------------------------
-// Always /api — works both locally (Vite dev proxy) and on Vercel (rewrite rule).
+// Always /api - works both locally (Vite dev proxy) and on Vercel (rewrite rule).
 // On Vercel, /api/* is rewritten to the backend service, stripping /api prefix.
 const BASE = '/api'
 

@@ -1,6 +1,6 @@
 ﻿from __future__ import annotations
 """
-Model Router — selects provider+model using the task classification,
+Model Router - selects provider+model using the task classification,
 routing policy from the model registry, circuit breakers, privacy tier,
 and active user policy.
 
@@ -40,7 +40,7 @@ class RoutingDecision:
         return (
             f"{self.provider_id}/{self.model} "
             f"(est. ${self.estimated_cost_usd:.4f}, ~{self.estimated_latency_ms}ms) "
-            f"— {self.reason}"
+            f"- {self.reason}"
         )
 
 
@@ -149,7 +149,7 @@ class TaskRouter:
 
         kimi = self.providers.get("kimi")
         if not kimi or not self._is_available("kimi"):
-            logger.info("Context compression: Kimi unavailable — sending full context to Claude")
+            logger.info("Context compression: Kimi unavailable - sending full context to Claude")
             return request
 
         full_text = "\n".join(
@@ -235,7 +235,7 @@ class TaskRouter:
             )
 
         except Exception as e:
-            logger.warning(f"Context compression failed: {e} — using original")
+            logger.warning(f"Context compression failed: {e} - using original")
             return request
 
     # -- Routing ---------------------------------------------------------------
@@ -256,7 +256,7 @@ class TaskRouter:
                 classification.estimated_context_tokens,
             )
             if not allowed:
-                logger.info(f"Claude blocked: {reason} — routing to fallback")
+                logger.info(f"Claude blocked: {reason} - routing to fallback")
                 policy = Policy(
                     type=policy.type, name=policy.name, description=policy.description,
                     avoid_providers=list(set(policy.avoid_providers + ["anthropic"])),

@@ -199,7 +199,7 @@ export default function Settings() {
           <BookOpen size={13} /> About
         </h3>
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 text-sm text-gray-400 space-y-1">
-          <p><span className="text-gray-200 font-medium">Cortex</span> — Multi-Model AI Agent Harness</p>
+          <p><span className="text-gray-200 font-medium">Cortex</span> - Multi-Model AI Agent Harness</p>
           <p>Version <span className="text-gray-200">2.0.0</span></p>
           <p className="text-xs text-gray-600 pt-2">
             Routes every request to the best AI provider based on task type, cost, latency, and your chosen policy.

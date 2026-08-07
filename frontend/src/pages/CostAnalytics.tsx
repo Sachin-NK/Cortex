@@ -23,14 +23,14 @@ function StatCard({ label, value, sub, icon: Icon, color }: {
   )
 }
 
-// -- Orchestrator efficiency gauge — works for any LLM, not just Claude --------
+// -- Orchestrator efficiency gauge - works for any LLM, not just Claude --------
 function OrchestratorGauge({ orchestrator, pct, delegated, savings }: {
   orchestrator: string; pct: number; delegated: number; savings: number
 }) {
   const r = 56
   const circ = 2 * Math.PI * r
   const dash = (pct / 100) * circ
-  // Color changes based on % — green = low usage (efficient), red = high (over-used)
+  // Color changes based on % - green = low usage (efficient), red = high (over-used)
   const color = pct < 20 ? '#22c55e' : pct < 40 ? '#f59e0b' : '#ef4444'
 
   return (
@@ -62,7 +62,7 @@ function OrchestratorGauge({ orchestrator, pct, delegated, savings }: {
       <p className="text-xs text-green-400 mt-1">${savings.toFixed(4)} estimated savings</p>
       {pct > 40 && (
         <p className="text-xs text-yellow-400 mt-2 text-center">
-          High orchestrator usage — consider delegating more tasks
+          High orchestrator usage - consider delegating more tasks
         </p>
       )}
     </div>
@@ -151,7 +151,7 @@ export default function CostAnalytics() {
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Cost by Provider</p>
           {costBarData.length === 0 ? (
-            <p className="text-xs text-gray-600 text-center py-8">No data yet — run some queries first</p>
+            <p className="text-xs text-gray-600 text-center py-8">No data yet - run some queries first</p>
           ) : (
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={costBarData} margin={{ left: -10 }}>
@@ -191,7 +191,7 @@ export default function CostAnalytics() {
           )}
         </div>
 
-        {/* Orchestrator gauge — not Claude-specific */}
+        {/* Orchestrator gauge - not Claude-specific */}
         <OrchestratorGauge
           orchestrator={orch}
           pct={orchUsage.percentage_of_total}

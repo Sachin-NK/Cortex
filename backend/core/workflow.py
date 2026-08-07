@@ -1,6 +1,6 @@
 ﻿from __future__ import annotations
 """
-Workflow Engine — executes multi-step AI pipelines with:
+Workflow Engine - executes multi-step AI pipelines with:
   - Sequential and parallel steps
   - Conditional branching
   - Retry loops with exponential backoff
@@ -23,7 +23,7 @@ from ..providers.base import LLMRequest
 
 logger = logging.getLogger(__name__)
 
-# SQLite DB path — configurable via env var
+# SQLite DB path - configurable via env var
 _DB_PATH = os.getenv("CORTEX_STATE_DB", "/tmp/cortex_state.db")
 
 
@@ -52,9 +52,9 @@ class WorkflowStep:
     max_tokens: int = 2048
     temperature: float = 0.7
     max_retries: int = 2                # retry attempts on failure
-    # Condition: python expression evaluated with {"context": run.context} — skip if False
+    # Condition: python expression evaluated with {"context": run.context} - skip if False
     condition: Optional[str] = None
-    # Escalation target step id — run this step if current step fails after all retries
+    # Escalation target step id - run this step if current step fails after all retries
     on_failure_step: Optional[str] = None
     # Optional transform: takes (context_str, run_context) → list[dict] messages
     input_transform: Optional[Callable[[str, dict], list[dict]]] = None
@@ -345,7 +345,7 @@ class WorkflowEngine:
         # Skip already-completed steps (resumption)
         existing = run.results.get(step.id)
         if existing and existing.status == StepStatus.COMPLETED:
-            logger.info(f"Step {step.id} already completed — skipping (resumed run)")
+            logger.info(f"Step {step.id} already completed - skipping (resumed run)")
             return
 
         # Wait for dependencies
@@ -369,7 +369,7 @@ class WorkflowEngine:
             try:
                 should_run = bool(eval(step.condition, {"context": run.context, "results": run.results}))  # noqa: S307
             except Exception as e:
-                logger.warning(f"Step {step.id} condition eval error: {e} — running anyway")
+                logger.warning(f"Step {step.id} condition eval error: {e} - running anyway")
                 should_run = True
             if not should_run:
                 run.results[step.id] = StepResult(step_id=step.id, status=StepStatus.SKIPPED,

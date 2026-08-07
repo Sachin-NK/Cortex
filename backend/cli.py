@@ -1,5 +1,5 @@
 ﻿"""
-Cortex CLI — command-line interface for the Multi-Model AI Agent Harness.
+Cortex CLI - command-line interface for the Multi-Model AI Agent Harness.
 
 Usage:
     python -m cortex.backend.cli providers discover
@@ -51,7 +51,7 @@ async def cmd_providers_discover() -> None:
     from .core.discovery import ModelRegistry
     print()
     _separator()
-    print("  CORTEX — Provider Discovery")
+    print("  CORTEX - Provider Discovery")
     _separator()
     registry = ModelRegistry()
     found = registry.discover()
@@ -81,7 +81,7 @@ async def cmd_models_list() -> None:
     _separator("-")
     for m in models:
         cap = m["capabilities"]
-        avail = "✓" if m["available"] else "—"
+        avail = "✓" if m["available"] else "-"
         print(
             f"  {m['provider']:<12} {m['model']:<30} "
             f"{m['context_window']//1000:<6}K "
@@ -114,7 +114,7 @@ async def cmd_models_test() -> None:
             icon = "✓" if "healthy" in str(status).lower() else "⚠"
             print(f"  {icon} {pid:<12} {status}")
         except Exception as e:
-            print(f"  ✗ {pid:<12} ERROR — {e}")
+            print(f"  ✗ {pid:<12} ERROR - {e}")
     print()
 
 
@@ -263,14 +263,14 @@ async def cmd_workflow_status(run_id: str) -> None:
 # -- costs report --------------------------------------------------------------
 
 async def cmd_costs_report() -> None:
-    """Prints instructions — live data requires the API server or a workflow run."""
+    """Prints instructions - live data requires the API server or a workflow run."""
     print("""
   Cost Report
   -----------
-  Option 1 — Run a workflow from the CLI:
+  Option 1 - Run a workflow from the CLI:
     python -m cortex.backend.cli workflow run rest_api_builder --task "Build API"
 
-  Option 2 — Query the running API server:
+  Option 2 - Query the running API server:
     curl http://localhost:8000/costs | python -m json.tool
 
   The report includes:
@@ -305,7 +305,7 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(
         prog="cortex",
-        description="Cortex — Multi-Model AI Agent Harness CLI",
+        description="Cortex - Multi-Model AI Agent Harness CLI",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=textwrap.dedent("""\
             Examples:

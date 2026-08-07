@@ -74,7 +74,7 @@ export default function IDE() {
   const fsDirHandle = useRef<FileSystemDirectoryHandle | null>(null)
   const editorRef = useRef<any>(null)
 
-  // ── Load workspace ─────────────────────────────────────────────────────────
+  // -- Load workspace ---------------------------------------------------------
   const loadTree = useCallback(async () => {
     try {
       const [entries, ws] = await Promise.all([api.listFiles(), api.workspace()])
@@ -175,7 +175,7 @@ export default function IDE() {
   const deleteEntry = async (entry: FileEntry) => {
     if (!confirm(`Delete "${entry.name}"?`)) return
     if (isBrowserFS()) {
-      // Remove from tree visually — can't delete via browser FS API without extra permissions
+      // Remove from tree visually - can't delete via browser FS API without extra permissions
       setTree(t => t.filter(e => e.path !== entry.path))
       setTabs(ts => ts.filter(t => t.path !== entry.path))
       if (activeTab === entry.path) setActiveTab('')
@@ -372,7 +372,7 @@ export default function IDE() {
             })}
           </div>
 
-          {/* Right controls — always visible */}
+          {/* Right controls - always visible */}
           <div className="flex items-center gap-1 px-2 shrink-0" style={{ borderLeft: '1px solid #1e1e24' }}>
             {/* Terminal toggle */}
             <button onClick={() => setTermOpen(o => !o)} title="Toggle Terminal  Ctrl+`"
@@ -427,7 +427,7 @@ export default function IDE() {
         {/* -- Editor + Terminal vertical split -- */}
         <div className="flex-1 flex flex-col min-h-0">
 
-          {/* Monaco editor — fills all space when terminal closed */}
+          {/* Monaco editor - fills all space when terminal closed */}
           <div className="min-h-0" style={{ flex: 1 }}>
             {activeTabData ? (
               <Editor
@@ -491,7 +491,7 @@ export default function IDE() {
             )}
           </div>
 
-          {/* -- Terminal panel — slides in from bottom -- */}
+          {/* -- Terminal panel - slides in from bottom -- */}
           {termOpen && (
             <TerminalTabs
               height={termH}

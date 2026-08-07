@@ -1,6 +1,6 @@
 ﻿from __future__ import annotations
 """
-MCP Tool Orchestrator — developer-focused tools that integrate with
+MCP Tool Orchestrator - developer-focused tools that integrate with
 real APIs and utilities useful in an AI coding assistant context.
 
 Built-in tools:
@@ -66,12 +66,12 @@ class MCPOrchestrator:
                         pass  # Would need full scope analysis for real unused detection
                     # Bare except
                     if isinstance(node, ast.ExceptHandler) and node.type is None:
-                        issues.append({"line": node.lineno, "message": "bare `except:` clause — catch specific exceptions", "severity": "warning"})
+                        issues.append({"line": node.lineno, "message": "bare `except:` clause - catch specific exceptions", "severity": "warning"})
                     # Dangerous eval/exec
                     if isinstance(node, ast.Call):
                         func = node.func
                         if isinstance(func, ast.Name) and func.id in ("eval", "exec"):
-                            issues.append({"line": node.lineno, "message": f"`{func.id}()` is a security risk — avoid dynamic code execution", "severity": "error"})
+                            issues.append({"line": node.lineno, "message": f"`{func.id}()` is a security risk - avoid dynamic code execution", "severity": "error"})
             except SyntaxError as e:
                 issues.append({"line": e.lineno, "message": f"SyntaxError: {e.msg}", "severity": "error"})
             return {
@@ -218,7 +218,7 @@ class MCPOrchestrator:
                 "percentage_used": round(estimated_tokens / limit * 100, 1),
             }
 
-        # -- Web search (Serper — Google Search API) -----------------------
+        # -- Web search (Serper - Google Search API) -----------------------
         async def web_search(query: str, num_results: int = 5) -> dict:
             api_key = os.getenv("SERPER_API_KEY")
             if not api_key:

@@ -41,7 +41,7 @@ ALLOWED_ORIGINS = [o.strip() for o in _raw_origins.split(",")] if _raw_origins !
 app = FastAPI(
     title="Cortex",
     version="2.0.0",
-    description="Multi-Model AI Agent Harness — provider-agnostic, Claude-efficient",
+    description="Multi-Model AI Agent Harness - provider-agnostic, Claude-efficient",
 )
 app.add_middleware(
     CORSMiddleware,
@@ -92,7 +92,7 @@ _PROVIDER_HEADER_MAP = {
 def _get_request_providers(request: Request) -> dict:
     """
     Merge server-level providers (.env) with user-supplied keys from headers.
-    User keys take priority and are used only for this request — never stored.
+    User keys take priority and are used only for this request - never stored.
     """
     req_providers = dict(providers)
     for pid, (header, default_model) in _PROVIDER_HEADER_MAP.items():
@@ -147,7 +147,7 @@ async def startup():
     registry.discover()
     if providers:
         asyncio.create_task(router.refresh_health())
-    logger.info(f"Cortex v{VERSION} started — providers: {list(providers.keys())}")
+    logger.info(f"Cortex v{VERSION} started - providers: {list(providers.keys())}")
 
 
 # -- Request schemas ------------------------------------------------------------
@@ -186,7 +186,7 @@ class MemoryWriteRequest(BaseModel):
 
 @app.get("/health")
 async def health():
-    """Lightweight liveness probe — no external calls."""
+    """Lightweight liveness probe - no external calls."""
     return {
         "status": "ok",
         "version": "2.0.0",
@@ -532,7 +532,7 @@ async def security_summary():
 
 @app.get("/security/redact")
 async def redact_test(text: str):
-    """Utility endpoint — redact secrets from a text sample."""
+    """Utility endpoint - redact secrets from a text sample."""
     return {"original_length": len(text), "redacted": security.redact_secrets(text)}
 
 
@@ -670,7 +670,7 @@ class CodeActionRequest(BaseModel):
     action: str                          # explain | refactor | fix | test | document | complete | chat
     code: str = ""                       # selected code or empty (backend reads file if file_path given)
     language: str = "python"
-    file_path: str = ""                  # relative path inside workspace — backend reads full file
+    file_path: str = ""                  # relative path inside workspace - backend reads full file
     file_context: str = ""               # surrounding lines (caller may pre-supply)
     error_context: str = ""              # stderr / traceback for fix action
     user_message: str = ""               # free-form chat message
@@ -709,7 +709,7 @@ _LANG_RULES: Dict[str, str] = {
 }
 
 _BASE_SYSTEM = """You are an expert software engineer embedded in a coding IDE.
-Your output will be inserted directly into the user's editor — so code quality, correctness, and efficiency are critical.
+Your output will be inserted directly into the user's editor - so code quality, correctness, and efficiency are critical.
 
 Rules:
 - Generated code must compile/run without modification.
@@ -717,7 +717,7 @@ Rules:
 - Never add placeholder comments like '# TODO' or '# Add logic here'.
 - Never truncate code with '...' or 'rest of code here'.
 - When returning code, wrap it in a single fenced block with the correct language tag.
-- Be concise in explanations — developers prefer code over prose.
+- Be concise in explanations - developers prefer code over prose.
 - If the code has dependencies, use only what is already imported in the file.
 """
 
@@ -744,7 +744,7 @@ def _build_ide_messages(req: "CodeActionRequest") -> List[Dict]:
     # Decide what code to work on
     working_code = req.code or full_file_content or req.file_context
 
-    # Build context block — what the model needs to understand the surrounding code
+    # Build context block - what the model needs to understand the surrounding code
     context_parts = []
     if req.file_path:
         context_parts.append(f"File: {req.file_path}")
@@ -770,7 +770,7 @@ def _build_ide_messages(req: "CodeActionRequest") -> List[Dict]:
             "2. How it works (step by step, concise)\n"
             "3. Any edge cases, gotchas, or non-obvious behaviour\n"
             "4. Time/space complexity if relevant\n"
-            "Be direct — no filler words."
+            "Be direct - no filler words."
         ),
         "refactor": (
             "Refactor this code for:\n"
@@ -1078,7 +1078,7 @@ async def list_task_types():
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# WORKSPACE MANAGEMENT — let users browse device folders
+# WORKSPACE MANAGEMENT - let users browse device folders
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 import os as _os
 
@@ -1139,7 +1139,7 @@ async def browse_dir(path: str = ""):
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# OPTIMIZATION TARGET — which LLM is the "orchestrator" and what are the others
+# OPTIMIZATION TARGET - which LLM is the "orchestrator" and what are the others
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 import json as _json
 import sqlite3 as _sqlite3

@@ -1,15 +1,13 @@
-﻿# -- Secrets — NEVER commit these ----------------------------------------------
+﻿# Secrets - never commit
 .env
 .env.local
 .env.production
 *.env
 
-# -- Python --------------------------------------------------------------------
+# Python
 __pycache__/
 *.py[cod]
 *.pyo
-*.pyd
-.Python
 *.egg-info/
 dist/
 build/
@@ -20,36 +18,35 @@ env/
 *.sqlite3
 /tmp/
 
-# -- Node / Frontend -----------------------------------------------------------
+# Node / Frontend
 frontend/node_modules/
 frontend/dist/
 frontend/.env
 frontend/.env.local
 
-# -- IDE / OS ------------------------------------------------------------------
+# IDE / OS
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
 *.log
 
-# -- Test / CI cache -----------------------------------------------------------
+# Test / CI cache
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 htmlcov/
 .coverage
 
-# -- Workspace files (user-specific) -------------------------------------------
+# Workspace files (user-specific)
 cortex_workspace/
+
+# Temp scripts (never commit these)
+*.ps1
+*.bat
 diagnose.py
 read_pdf.py
-install_deps.ps1
-run_cortex.ps1
-check_import.ps1
-check.bat
-install_and_run.bat
-
-# Temp scripts
-push.ps1
-*.ps1
+clean_*.py
+clean_*.ps1
+push*.ps1
+p.ps1
