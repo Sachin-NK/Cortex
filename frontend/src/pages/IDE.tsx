@@ -18,6 +18,8 @@ import QuickActions from '../components/ide/QuickActions'
 import CommandPalette from '../components/ide/CommandPalette'
 import TerminalTabs from '../components/ide/TerminalTabs'
 import FolderBrowser from '../components/ide/FolderBrowser'
+import type { FSFileEntry } from '../components/ide/FolderBrowser'
+import { readFileContent } from '../components/ide/FolderBrowser'
 import AIPanel from '../components/AIPanel'
 
 // -- Language detection --------------------------------------------------------
@@ -67,10 +69,12 @@ export default function IDE() {
   const [folderBrowser, setFolderBrowser] = useState(false)
   const [cursorPos, setCursorPos] = useState({ line: 1, col: 1 })
   const [renameState, setRenameState] = useState<{ entry: FileEntry; name: string } | null>(null)
+  // Browser-native file handles (populated when user opens via File System Access API)
+  const fsHandles = useRef<Map<string, FileSystemFileHandle>>(new Map())
+  const fsDirHandle = useRef<FileSystemDirectoryHandle | null>(null)
   const editorRef = useRef<any>(null)
-  const modifiedSet = new Set(tabs.filter(t => t.modified).map(t => t.path))
 
-  // -- Load workspace ---------------------------------------------------------
+  // ── Load workspace ─────────────────────────────────────────────────────────
   const loadTree = useCallback(async () => {
     try {
       const [entries, ws] = await Promise.all([api.listFiles(), api.workspace()])
@@ -104,7 +108,16 @@ export default function IDE() {
       return
     }
     try {
-      const { content } = await api.readFile(entry.path)
+      let content = ''
+      // Use browser File System Access API handle if available
+      const handle = fsHandles.current.get(entry.path)
+      if (handle) {
+        content = await readFileContent(handle)
+      } else {
+        // Fall back to backend API (local mode)
+        const res = await api.readFile(entry.path)
+        content = res.content
+      }
       setTabs(ts => [...ts, { path: entry.path, name: entry.name, content, modified: false, language: detectLang(entry.name) }])
       setActiveTab(entry.path)
       setRecentFiles(r => [entry.path, ...r.filter(x => x !== entry.path)].slice(0, 20))
@@ -124,7 +137,16 @@ export default function IDE() {
     if (!tab) return
     setSaving(true)
     try {
-      await api.writeFile(tab.path, tab.content)
+      // Use browser File System Access API handle if available (works on Vercel)
+      const handle = fsHandles.current.get(tab.path)
+      if (handle) {
+        const writable = await (handle as any).createWritable()
+        await writable.write(tab.content)
+        await writable.close()
+      } else {
+        // Fall back to backend API (local mode)
+        await api.writeFile(tab.path, tab.content)
+      }
       setTabs(ts => ts.map(t => t.path === activeTab ? { ...t, modified: false } : t))
       if (tab.language === 'python') lintFile(tab.path, tab.content)
     } finally { setSaving(false) }
@@ -147,13 +169,38 @@ export default function IDE() {
     setTabs(ts => ts.map(t => t.path === activeTab ? { ...t, content: value, modified: true } : t))
   }
 
+  // True when folder was opened via browser File System Access API (no backend needed for files)
+  const isBrowserFS = () => fsHandles.current.size > 0 || fsDirHandle.current !== null
+
   const deleteEntry = async (entry: FileEntry) => {
     if (!confirm(`Delete "${entry.name}"?`)) return
+    if (isBrowserFS()) {
+      // Remove from tree visually — can't delete via browser FS API without extra permissions
+      setTree(t => t.filter(e => e.path !== entry.path))
+      setTabs(ts => ts.filter(t => t.path !== entry.path))
+      if (activeTab === entry.path) setActiveTab('')
+      return
+    }
     try { await api.deleteFile(entry.path); loadTree() } catch (e: any) { alert(e.message) }
   }
 
   const doRename = async () => {
     if (!renameState?.name.trim()) return
+    if (isBrowserFS()) {
+      // Rename in tree visually only
+      const oldPath = renameState.entry.path
+      const newName = renameState.name.trim()
+      const newPath = oldPath.includes('/')
+        ? oldPath.substring(0, oldPath.lastIndexOf('/') + 1) + newName
+        : newName
+      const handle = fsHandles.current.get(oldPath)
+      if (handle) { fsHandles.current.set(newPath, handle); fsHandles.current.delete(oldPath) }
+      setTree(t => t.map(e => e.path === oldPath ? { ...e, name: newName, path: newPath } : e))
+      setTabs(ts => ts.map(t => t.path === oldPath ? { ...t, name: newName, path: newPath } : t))
+      if (activeTab === oldPath) setActiveTab(newPath)
+      setRenameState(null)
+      return
+    }
     try { await api.renameFile(renameState.entry.path, renameState.name.trim()); setRenameState(null); loadTree() }
     catch (e: any) { alert(e.message) }
   }
@@ -162,6 +209,13 @@ export default function IDE() {
     const name = prompt('File name:')
     if (!name) return
     const path = dir ? `${dir}/${name}` : name
+    if (isBrowserFS()) {
+      // Create empty file in browser tree
+      const entry: FileEntry = { name, path, is_dir: false, size: 0 }
+      setTree(t => [...t, entry])
+      openFile(entry)
+      return
+    }
     try { await api.createFile(path); loadTree(); openFile({ name, path, is_dir: false, size: 0 }) }
     catch (e: any) { alert(e.message) }
   }
@@ -170,6 +224,10 @@ export default function IDE() {
     const name = prompt('Folder name:')
     if (!name) return
     const path = dir ? `${dir}/${name}` : name
+    if (isBrowserFS()) {
+      setTree(t => [...t, { name, path, is_dir: true, size: 0, children: [] }])
+      return
+    }
     try { await api.createFile(`${path}/.keep`); loadTree() } catch (e: any) { alert(e.message) }
   }
 
@@ -178,9 +236,46 @@ export default function IDE() {
     navigator.clipboard.writeText(p)
   }
 
-  const handleOpenFolder = async (path: string) => {
-    try { await api.setWorkspace(path); setTabs([]); setActiveTab(''); loadTree() }
-    catch (e: any) { alert(e.message) }
+  const handleOpenFolder = async (fsEntries: FSFileEntry[]) => {
+    // Store all file handles for browser-native read/write
+    fsHandles.current.clear()
+    fsEntries.forEach(e => {
+      if (!e.is_dir && e.handle) fsHandles.current.set(e.path, e.handle)
+      if (e.is_dir && e.dirHandle && e.path === '') fsDirHandle.current = e.dirHandle
+    })
+
+    // Build FileEntry tree for the explorer (no backend needed)
+    const rootName = fsEntries[0]?.name ?? 'workspace'
+    setWorkspace(rootName)
+
+    // Convert flat list to nested tree
+    const buildTree = (entries: FSFileEntry[]): FileEntry[] => {
+      const roots: FileEntry[] = []
+      const map: Record<string, FileEntry> = {}
+
+      // Create all nodes
+      entries.forEach(e => {
+        map[e.path] = { name: e.name, path: e.path, is_dir: e.is_dir, size: e.size, children: e.is_dir ? [] : undefined }
+      })
+
+      // Wire up parent-child relationships
+      entries.forEach(e => {
+        if (!e.path) return // root
+        const parentPath = e.path.includes('/') ? e.path.substring(0, e.path.lastIndexOf('/')) : ''
+        if (parentPath === '' || !map[parentPath]) {
+          roots.push(map[e.path])
+        } else if (map[parentPath]?.children) {
+          map[parentPath].children!.push(map[e.path])
+        }
+      })
+
+      return roots
+    }
+
+    const fileOnlyEntries = fsEntries.filter(e => e.path !== '')
+    setTree(buildTree(fileOnlyEntries))
+    setTabs([])
+    setActiveTab('')
   }
 
   const handleQuickAction = async (action: string) => {
@@ -200,6 +295,7 @@ export default function IDE() {
   }
 
   const activeTabData = tabs.find(t => t.path === activeTab)
+  const modifiedSet = new Set(tabs.filter(t => t.modified).map(t => t.path))
   const wordCount = activeTabData ? activeTabData.content.trim().split(/\s+/).filter(Boolean).length : 0
 
   const paletteActions = [
@@ -445,7 +541,7 @@ export default function IDE() {
       )}
 
       {folderBrowser && (
-        <FolderBrowser onSelect={handleOpenFolder} onClose={() => setFolderBrowser(false)} />
+        <FolderBrowser onFilesLoaded={handleOpenFolder} onClose={() => setFolderBrowser(false)} />
       )}
 
       {/* Rename modal */}
