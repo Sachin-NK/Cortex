@@ -1,7 +1,7 @@
 # Cortex IDE
 
 A multi-model AI-powered coding IDE that routes every task to the right model automatically.
-Users bring their own API keys — stored in their browser only, never on the server.
+Users bring their own API keys - stored in their browser only, never on the server.
 
 ## What it does
 
@@ -38,7 +38,7 @@ cd Cortex
 pip install -r backend/requirements.txt
 python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 
-# Frontend (Node 18+) - in a second terminal
+# Frontend (Node 18+)
 cd frontend
 npm install
 npm run dev
@@ -48,24 +48,9 @@ Open http://localhost:3000 then go to http://localhost:3000/keys to add your API
 
 Or just run `run.bat` from the cortex/ directory on Windows.
 
-## Deploy to Vercel (free, one click)
 
-Full-stack deploy - frontend + FastAPI backend on one domain.
 
-1. Fork this repo on GitHub
-2. Go to [vercel.com/new](https://vercel.com/new) and import your fork
-3. Set **Framework** to **Services** in project settings
-4. Add environment variables:
-   ```
-   PRIVACY_TIER=standard
-   CORTEX_STATE_DB=/tmp/cortex_state.db
-   ENABLE_MOCK_PROVIDER=false
-   ```
-5. Deploy - your app is live at `https://your-project.vercel.app`
-
-Users visit `/setup` on first load to add their own API keys. No keys are stored on the server.
-
-Note: the integrated terminal requires a persistent backend (local or Koyeb) - not available on Vercel serverless.
+Note: the integrated terminal requires a persistent backend (local) - not available on Vercel serverless.
 
 ## How API keys work
 
