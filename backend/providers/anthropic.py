@@ -1,4 +1,4 @@
-﻿import time
+import time
 from typing import AsyncIterator
 import anthropic
 from .base import BaseProvider, LLMRequest, LLMResponse, ModelCapabilities, ProviderMeta, ProviderStatus

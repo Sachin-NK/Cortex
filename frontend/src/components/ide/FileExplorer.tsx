@@ -1,4 +1,4 @@
-﻿import { useState, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import {
   FolderOpen, Folder, FileText, Plus, FolderPlus, RefreshCw, FolderInput,
   ChevronRight, ChevronDown,

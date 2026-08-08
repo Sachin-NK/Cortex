@@ -1,4 +1,4 @@
-﻿// -- Key storage (localStorage only - keys never sent to server except as headers) --
+// -- Key storage (localStorage only - keys never sent to server except as headers) --
 const KEY_STORAGE_PREFIX = 'cortex_key_'
 
 export const PROVIDER_DEFS = [

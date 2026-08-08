@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 """
 MCP Tool Orchestrator - developer-focused tools that integrate with
 real APIs and utilities useful in an AI coding assistant context.

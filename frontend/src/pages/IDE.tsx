@@ -1,4 +1,4 @@
-﻿import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import Editor, { OnMount } from '@monaco-editor/react'
 import { Code2, Save, Bot, Terminal as TermIcon, X } from 'lucide-react'
 import { api } from '../api'

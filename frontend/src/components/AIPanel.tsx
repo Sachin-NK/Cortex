@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import {
   X, Copy, Check, Loader2, Sparkles, CornerDownLeft, ChevronDown,
   MessageSquare, Code2, Eye, ChevronRight, ChevronLeft,

@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 """
 Model Router - selects provider+model using the task classification,
 routing policy from the model registry, circuit breakers, privacy tier,

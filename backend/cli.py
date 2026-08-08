@@ -1,4 +1,4 @@
-﻿"""
+"""
 Cortex CLI - command-line interface for the Multi-Model AI Agent Harness.
 
 Usage:

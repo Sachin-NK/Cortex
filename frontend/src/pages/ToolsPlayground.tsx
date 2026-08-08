@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { api, MCPTool } from '../api'
 import {
   Wrench, Play, Loader2, ChevronRight, Code2, FileSearch,

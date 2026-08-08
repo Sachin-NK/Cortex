@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { api } from '../api'
 import type { MCPTool, Policy } from '../api'
 import { Shield, Wrench, BookOpen, CheckCircle, AlertCircle, Info } from 'lucide-react'

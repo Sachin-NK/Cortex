@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 """
 Workflow Engine - executes multi-step AI pipelines with:
   - Sequential and parallel steps
