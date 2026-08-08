@@ -1,101 +1,121 @@
 # Cortex IDE
 
-A multi-model AI-powered coding IDE. Routes every task to the right model automatically.
-Users bring their own API keys — stored in the browser, never on the server.
+A multi-model AI-powered coding IDE that routes every task to the right model automatically.
+Users bring their own API keys — stored in their browser only, never on the server.
 
-## Features
+## What it does
 
-- Monaco code editor with multi-tab support
-- AI actions: Explain, Refactor, Fix Bug, Write Tests, Document
-- Smart routing: DeepSeek for code, Kimi for long context, Gemini for multimodal, OpenAI for structured output
-- Claude budget enforcement (orchestrator-only)
-- Integrated terminal (WebSocket)
-- File explorer with device folder browser
-- 8 built-in multi-step AI agents
-- 11 MCP developer tools
-- Cost analytics and delegation tracking
-- Supports: OpenAI, Anthropic, Gemini, DeepSeek, Kimi, OpenRouter
+- **Smart routing**: DeepSeek for code, Kimi for long context, Gemini for multimodal, OpenAI for structured output, Claude as orchestrator only
+- **Monaco editor**: multi-tab, syntax highlighting, 20+ languages, Ctrl+S save
+- **AI actions**: Explain, Refactor, Fix Bug, Write Tests, Document, Complete - reads full file context automatically
+- **Browser file access**: open any folder from your device directly (File System Access API)
+- **Integrated terminal**: WebSocket terminal in the IDE (local mode only)
+- **8 built-in agents**: multi-step AI workflows (Code Review, Security Audit, Debugger, REST API Builder, etc.)
+- **11 MCP tools**: code linter, JSON validator, regex tester, token estimator, web search, diff, and more
+- **Cost analytics**: real-time token/cost tracking per provider with Claude efficiency gauge
+- **Optimization settings**: configure which model is the orchestrator, worker roles per provider, budget limits
+- **Per-user API keys**: users paste their own keys on the Keys page - no account needed
+
+## Supported providers
+
+| Provider | Best for | Header |
+|---|---|---|
+| OpenAI | Structured output, security review | `X-OpenAI-Key` |
+| Anthropic (Claude) | Orchestration, final approval only | `X-Anthropic-Key` |
+| Google Gemini | Multimodal, architecture, long context | `X-Gemini-Key` |
+| DeepSeek | Code generation, debugging, refactoring | `X-Deepseek-Key` |
+| Kimi (Moonshot) | Long documents, repo analysis | `X-Kimi-Key` |
+| OpenRouter | 100+ models via one key (best for new users) | `X-Openrouter-Key` |
 
 ## Run locally
 
 ```bash
+# Clone
+git clone https://github.com/Sachin-NK/Cortex.git
+cd Cortex
+
 # Backend (Python 3.8+)
-cd cortex
 pip install -r backend/requirements.txt
 python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 
-# Frontend (Node 18+)
+# Frontend (Node 18+) - in a second terminal
 cd frontend
 npm install
 npm run dev
 ```
 
-Open http://localhost:5173
+Open http://localhost:3000 then go to http://localhost:3000/keys to add your API keys.
 
-## Deploy to Koyeb (backend) + Vercel (frontend)
+Or just run `run.bat` from the cortex/ directory on Windows.
 
-### Backend on Koyeb (free, no expiry, no credit card)
+## Deploy to Vercel (free, one click)
 
-1. Push this repo to GitHub
-2. Go to https://app.koyeb.com and sign up (free)
-3. New Service > GitHub > select your repo
-4. Configure:
-   - Root directory: `cortex`
-   - Build command: `pip install -r backend/requirements.txt`
-   - Start command: `python -m uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
-   - Instance: Free (512MB)
-5. Add environment variables (all optional - users supply their own keys):
+Full-stack deploy - frontend + FastAPI backend on one domain.
+
+1. Fork this repo on GitHub
+2. Go to [vercel.com/new](https://vercel.com/new) and import your fork
+3. Set **Framework** to **Services** in project settings
+4. Add environment variables:
    ```
-   ENABLE_MOCK_PROVIDER=false
-   CORTEX_STATE_DB=/tmp/cortex_state.db
    PRIVACY_TIER=standard
+   CORTEX_STATE_DB=/tmp/cortex_state.db
+   ENABLE_MOCK_PROVIDER=false
    ```
-6. Deploy. Note your Koyeb URL: `https://your-app-name.koyeb.app`
+5. Deploy - your app is live at `https://your-project.vercel.app`
 
-### Frontend on Vercel (free, unlimited)
+Users visit `/setup` on first load to add their own API keys. No keys are stored on the server.
 
-1. Edit `frontend/vercel.json` - replace `YOUR_RAILWAY_URL` with your actual Koyeb URL
-2. Go to https://vercel.com and import your GitHub repo
-3. Configure:
-   - Framework: Vite
-   - Root directory: `cortex/frontend`
-   - Build command: `npm run build`
-   - Output directory: `dist`
-4. Deploy
+Note: the integrated terminal requires a persistent backend (local or Koyeb) - not available on Vercel serverless.
 
-### User API keys
+## How API keys work
 
-Users add their own keys on the `/keys` page. Keys are:
-- Stored in browser `localStorage`
-- Sent as HTTP headers (`X-OpenAI-Key`, `X-Anthropic-Key`, etc.) with every request
-- Never stored on the server
+Keys are stored in browser `localStorage` and sent as HTTP request headers on every call. The backend uses them only for that request - never stored anywhere.
 
-Supported providers:
-- OpenAI (`X-OpenAI-Key`)
-- Anthropic (`X-Anthropic-Key`)
-- Google Gemini (`X-Gemini-Key`)
-- DeepSeek (`X-Deepseek-Key`)
-- Kimi / Moonshot (`X-Kimi-Key`)
-- OpenRouter (`X-Openrouter-Key`) - 100+ models with one key
+```
+User browser
+  localStorage: { openai: "sk-...", gemini: "AIza..." }
+       |
+       | GET /api/chat
+       | Headers: X-OpenAI-Key: sk-...
+       |          X-Gemini-Key: AIza...
+       v
+  Vercel / Backend
+       |
+       | Uses key from header for this request only
+       v
+  OpenAI / Gemini / etc.
+```
 
 ## Architecture
 
 ```
-Browser (Vercel)
-    |
-    | /api/* (vercel.json rewrite)
-    |
-Koyeb (FastAPI backend)
-    |
-    +-- OpenAI API (user's key from header)
-    +-- Anthropic API
-    +-- Gemini API
-    +-- DeepSeek API
-    +-- Kimi API
-    +-- OpenRouter API
+frontend/          React + Vite + Monaco + xterm
+  src/
+    pages/         Dashboard, IDE, Chat, Agents, Costs, Keys, Optimization
+    components/
+      ide/         ActivityBar, FileExplorer, TerminalTabs, CommandPalette...
+      AIPanel      Chat / Inline / Review modes
+
+backend/           FastAPI (Python)
+  main.py          All API routes + per-request key injection
+  core/
+    router.py      Smart provider scoring and fallback chain
+    classifier.py  Task type detection (13 types)
+    workflow.py    Multi-step agent execution + SQLite checkpointing
+    memory.py      Session + scoped memory store
+    security.py    Secret redaction, tool allowlists, privacy tiers
+    token_accounting.py  Cost tracking + Claude budget enforcement
+    observability.py     Execution traces
+    file_manager.py      Workspace file operations
+    user_config.py       Per-provider limit storage
+  providers/       OpenAI, Anthropic, Gemini, DeepSeek, Kimi, OpenRouter, Mock
+  agents/          8 built-in multi-step workflow definitions
+  mcp/             11 developer tools (lint, diff, hash, regex, web search...)
+
+vercel.json        Monorepo deploy: frontend service + backend service
 ```
 
-## Local .env (optional for local dev)
+## Local .env
 
-Copy `.env.example` to `.env` and fill in keys for local development.
-In production, users supply keys from the browser.
+Copy `.env.example` to `.env` for local development with server-side keys.
+In production on Vercel, users supply their own keys from the browser.
