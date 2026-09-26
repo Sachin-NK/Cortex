@@ -134,4 +134,6 @@ class AgentRegistry:
         if agent_id in self._agents and agent_id not in BUILTIN_AGENTS:
             del self._agents[agent_id]
             return True
+        if agent_id in BUILTIN_AGENTS:
+            return False  # built-in agents cannot be removed
         return False
