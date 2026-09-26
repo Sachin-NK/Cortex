@@ -380,6 +380,12 @@ async def get_run_output(run_id: str):
 
 # -- Providers & Models ---------------------------------------------------------
 
+@app.get("/providers/circuits")
+async def circuit_stats():
+    """Return circuit breaker state for every configured provider."""
+    return router.circuit_stats()
+
+
 @app.get("/providers")
 async def list_providers():
     await _maybe_refresh_health()
