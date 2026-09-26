@@ -110,6 +110,12 @@ class TokenAccountant:
             "total_cost_usd": round(total_cost, 6),
             "by_provider": {k: {**v, "cost_usd": round(v["cost_usd"], 6)} for k, v in by_provider.items()},
             "by_agent": by_agent,
+            "by_task_type": {
+                task: {"calls": sum(1 for r in records if r.task_type == task),
+                       "tokens": sum(r.input_tokens + r.output_tokens for r in records if r.task_type == task),
+                       "cost_usd": round(sum(r.cost_usd for r in records if r.task_type == task), 6)}
+                for task in {r.task_type for r in records if r.task_type}
+            },
             "claude_efficiency": {
                 "calls": claude_data.get("calls", 0),
                 "input_tokens": claude_data.get("input_tokens", 0),
