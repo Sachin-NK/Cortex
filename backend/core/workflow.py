@@ -51,7 +51,8 @@ class WorkflowStep:
     parallel_group: Optional[str] = None  # Steps with same group run in parallel
     max_tokens: int = 2048
     temperature: float = 0.7
-    max_retries: int = 2                # retry attempts on failure
+    max_retries: int = 2
+    timeout_seconds: int = 120
     # Condition: python expression evaluated with {"context": run.context} - skip if False
     condition: Optional[str] = None
     # Escalation target step id - run this step if current step fails after all retries
