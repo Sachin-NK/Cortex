@@ -87,3 +87,14 @@ async def with_retry(
                 await asyncio.sleep(delay)
 
     raise last_exc
+
+    def stats(self) -> dict:
+        """Return current circuit breaker state for monitoring."""
+        return {
+            "provider_id": self.provider_id,
+            "state": self.state.value,
+            "failure_count": self._failure_count,
+            "failure_threshold": self.failure_threshold,
+            "opened_at": self._opened_at if self._state.value == "open" else None,
+            "recovery_timeout_seconds": self.recovery_timeout,
+        }
