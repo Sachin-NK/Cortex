@@ -71,6 +71,10 @@ class TaskRouter:
             except Exception:
                 self._health_cache[pid] = ProviderStatus.DOWN
 
+    def circuit_stats(self) -> dict:
+        """Return circuit breaker stats for every provider."""
+        return {pid: cb.stats() for pid, cb in self._circuits.items()}
+
     def _is_available(self, provider_id: str) -> bool:
         status = self._health_cache.get(provider_id, ProviderStatus.UNKNOWN)
         circuit = self._circuits.get(provider_id)
