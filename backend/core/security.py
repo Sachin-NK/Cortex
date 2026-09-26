@@ -183,3 +183,13 @@ class SecurityEngine:
             "allowed_providers": [p for p in ["openai", "anthropic", "gemini", "deepseek", "kimi"]
                                    if p not in self._blocked_providers],
         }
+
+    def get_stats(self) -> dict:
+        """Return security configuration summary for observability."""
+        return {
+            "privacy_tier": self.policy.privacy_tier,
+            "read_only_mode": self.policy.read_only_mode,
+            "blocked_providers": list(self._blocked_providers),
+            "allowed_tools_count": len(self.policy.allowed_tools),
+            "execution_timeout_seconds": self.policy.execution_timeout_seconds,
+        }
