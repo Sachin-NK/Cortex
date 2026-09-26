@@ -1311,3 +1311,65 @@ async def optimization_report():
             "total_tokens": total_tokens,
         },
     }
+
+
+# Git endpoints
+import subprocess as _subprocess
+
+class GitCommitRequest(BaseModel):
+    message: str
+    files: List[str] = []
+
+def _git(args: List[str], cwd: str) -> tuple[bool, str]:
+    try:
+        r = _subprocess.run(
+            ["git"] + args, cwd=cwd,
+            capture_output=True, text=True, timeout=15,
+        )
+        return r.returncode == 0, (r.stdout + r.stderr).strip()
+    except Exception as e:
+        return False, str(e)
+
+@app.get("/git/status")
+async def git_status():
+    cwd = file_mgr.workspace_path
+    ok, out = _git(["rev-parse", "--is-inside-work-tree"], cwd)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Not a git repository")
+    _, branch_out = _git(["rev-parse", "--abbrev-ref", "HEAD"], cwd)
+    _, status_out = _git(["status", "--porcelain"], cwd)
+    files = []
+    for line in status_out.splitlines():
+        if len(line) >= 4:
+            status_code = line[:2].strip()
+            filepath = line[3:].strip()
+            files.append({"status": status_code, "file": filepath})
+    _, log_out = _git(["log", "--oneline", "-5"], cwd)
+    commits = [{"hash": l[:7], "message": l[8:]} for l in log_out.splitlines() if len(l) > 8]
+    return {"branch": branch_out, "files": files, "recent_commits": commits}
+
+@app.post("/git/stage")
+async def git_stage(req: GitCommitRequest):
+    cwd = file_mgr.workspace_path
+    files = req.files or ["."]
+    ok, out = _git(["add"] + files, cwd)
+    if not ok:
+        raise HTTPException(status_code=400, detail=out)
+    return {"staged": True, "output": out}
+
+@app.post("/git/commit")
+async def git_commit(req: GitCommitRequest):
+    cwd = file_mgr.workspace_path
+    if not req.message.strip():
+        raise HTTPException(status_code=400, detail="Commit message is required")
+    ok, out = _git(["commit", "-m", req.message], cwd)
+    if not ok:
+        raise HTTPException(status_code=400, detail=out)
+    return {"committed": True, "output": out}
+
+@app.get("/git/diff")
+async def git_diff(file: str = ""):
+    cwd = file_mgr.workspace_path
+    args = ["diff", "HEAD", "--", file] if file else ["diff", "HEAD"]
+    ok, out = _git(args, cwd)
+    return {"diff": out, "has_changes": bool(out.strip())}

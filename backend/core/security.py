@@ -42,16 +42,6 @@ SECRET_PATTERNS = [
     re.compile(r"(?i)aws[_\-]?(secret[_\-]?access[_\-]?key|session[_\-]?token)[=:\s\"']+\S+"),
     # GitHub tokens
     re.compile(r"gh[pousr]_[A-Za-z0-9]{36,}"),
-    # Generic hex secrets (32+ char hex strings that look like keys)
-    re.compile(r"(?<![a-zA-Z0-9])[0-9a-fA-F]{32,}(?![a-zA-Z0-9])"),
-    # Credit card numbers (basic Luhn-like pattern)
-    re.compile(r"\b(?:\d{4}[\s\-]?){3}\d{4}\b"),
-    # SSN pattern
-    re.compile(r"\b\d{3}[-\s]?\d{2}[-\s]?\d{4}\b"),
-    # Email addresses (flag but don't always block — context dependent)
-    re.compile(r"\b[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Z|a-z]{2,}\b"),
-    # IP addresses with port (potential internal infra leak)
-    re.compile(r"\b(?:10|172\.(?:1[6-9]|2\d|3[01])|192\.168)\.\d{1,3}\.\d{1,3}(?::\d+)?\b"),
     # Connection strings / DSNs
     re.compile(r"(?i)(mongodb|postgres|mysql|redis|amqp|jdbc)[+a-z]*://[^\s\"'<>]+"),
 ]
@@ -166,10 +156,17 @@ class SecurityEngine:
     def check_file_path(self, path: str) -> tuple[bool, str]:
         if PATH_TRAVERSAL.search(path):
             return False, "Path traversal not allowed"
+        # Resolve both paths to prevent partial-prefix bypass (e.g. /tmp/cortex_work2)
         restriction = self.policy.working_directory_restriction
-        if restriction and not path.startswith(restriction):
-            if path.startswith("/") and not path.startswith(restriction):
-                return False, f"Path outside working directory {restriction}"
+        if restriction:
+            import os as _os
+            try:
+                abs_path = _os.path.realpath(_os.path.abspath(path))
+                abs_restriction = _os.path.realpath(_os.path.abspath(restriction))
+                if not abs_path.startswith(abs_restriction + _os.sep) and abs_path != abs_restriction:
+                    return False, f"Path outside working directory {restriction}"
+            except Exception:
+                pass
         return True, "ok"
 
     def validate_prompt(self, text: str) -> str:

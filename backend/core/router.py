@@ -94,9 +94,17 @@ class TaskRouter:
         if classification.requires_long_context and meta.capabilities.max_context_tokens < 32000:
             return 0.0
 
-        max_cost = 0.1
+        # Normalise cost score against the most expensive configured provider
+        max_cost = max(
+            (self.providers[p].meta.cost_per_1k_output for p in self.providers),
+            default=0.1,
+        ) or 0.1
         cost_score = 1.0 - min(meta.cost_per_1k_output / max_cost, 1.0)
-        latency_score = 1.0 - min(meta.avg_latency_ms / 3000, 1.0)
+        max_latency = max(
+            (self.providers[p].meta.avg_latency_ms for p in self.providers),
+            default=3000,
+        ) or 3000
+        latency_score = 1.0 - min(meta.avg_latency_ms / max_latency, 1.0)
 
         quality_score = 0.1
         if meta.capabilities.reasoning:
@@ -355,8 +363,10 @@ class TaskRouter:
             )
 
             try:
+                provider_at_call = provider
+                req_at_call = req
                 response = await with_retry(
-                    lambda: provider.complete(req),
+                    lambda: provider_at_call.complete(req_at_call),
                     provider_id=pid,
                     circuit=circuit,
                 )

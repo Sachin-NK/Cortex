@@ -1,4 +1,7 @@
-// -- Key storage (localStorage only - keys never sent to server except as headers) --
+// Key storage (localStorage only - keys never sent to server except as headers)
+import { globalToast, setGlobalToast } from './components/Toast'
+export { setGlobalToast }
+
 const KEY_STORAGE_PREFIX = 'cortex_key_'
 
 export const PROVIDER_DEFS = [
@@ -75,7 +78,11 @@ async function get<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     headers: { ...buildKeyHeaders() },
   })
-  if (!res.ok) throw new Error(await res.text())
+  if (!res.ok) {
+    const msg = await res.text().catch(() => `HTTP ${res.status}`)
+    globalToast.error(`Request failed (${res.status})`, msg.slice(0, 120))
+    throw new Error(msg)
+  }
   return res.json()
 }
 
@@ -85,7 +92,11 @@ async function post<T>(path: string, body: unknown): Promise<T> {
     headers: { 'Content-Type': 'application/json', ...buildKeyHeaders() },
     body: JSON.stringify(body),
   })
-  if (!res.ok) throw new Error(await res.text())
+  if (!res.ok) {
+    const msg = await res.text().catch(() => `HTTP ${res.status}`)
+    globalToast.error(`Request failed (${res.status})`, msg.slice(0, 120))
+    throw new Error(msg)
+  }
   return res.json()
 }
 
@@ -94,7 +105,11 @@ async function del<T>(path: string): Promise<T> {
     method: 'DELETE',
     headers: { ...buildKeyHeaders() },
   })
-  if (!res.ok) throw new Error(await res.text())
+  if (!res.ok) {
+    const msg = await res.text().catch(() => `HTTP ${res.status}`)
+    globalToast.error(`Request failed (${res.status})`, msg.slice(0, 120))
+    throw new Error(msg)
+  }
   return res.json()
 }
 

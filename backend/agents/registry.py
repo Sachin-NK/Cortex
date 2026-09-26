@@ -3,14 +3,17 @@ from __future__ import annotations
 Agent Marketplace Registry — built-in agents + user-installed agents.
 Each agent is a named WorkflowDefinition with pre-built steps.
 """
-import uuid
+import re
 from typing import Optional, List
 from ..core.workflow import WorkflowDefinition, WorkflowStep
 
 
 def _step(name: str, role: str, prompt: str, provider: Optional[str] = None, approval: bool = False) -> WorkflowStep:
+    # Use a stable, deterministic ID derived from the step name so checkpointed
+    # runs can correlate step results across restarts (uuid4 at import = new IDs each time)
+    stable_id = re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
     return WorkflowStep(
-        id=str(uuid.uuid4()), name=name, role=role,
+        id=stable_id, name=name, role=role,
         prompt_template=prompt, provider_hint=provider,
         requires_approval=approval,
     )

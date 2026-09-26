@@ -118,8 +118,12 @@ class TokenAccountant:
                 "percentage_of_total": claude_pct,
                 "tasks_delegated_away_from_claude": len([r for r in records if r.provider != "anthropic"]),
                 "estimated_savings_usd": round(
-                    sum(r.cost_usd for r in records if r.provider != "anthropic") *
-                    (0.075 / 0.015),  # if all had used claude output rate
+                    # What it would have cost if ALL requests used Claude's output rate
+                    # vs what it actually cost using cheaper models
+                    sum(
+                        (0.075 / 1000) * r.output_tokens - r.cost_usd
+                        for r in records if r.provider != "anthropic"
+                    ),
                     4,
                 ),
             },

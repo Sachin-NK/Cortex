@@ -86,14 +86,10 @@ class TaskClassifier:
             if isinstance(m.get("content"), str)
         ).lower()
 
-        task_type = self._detect_type(text)
+        task_type, confidence = self._detect_type_scored(text)
         complexity = self._detect_complexity(text)
 
-        # Multimodal check: any message with non-string content (image parts)
-        has_images = any(
-            isinstance(m.get("content"), list) for m in messages
-        )
-
+        has_images = any(isinstance(m.get("content"), list) for m in messages)
         ctx_estimate = sum(
             len(m.get("content", "").split()) * 1.3
             for m in messages if isinstance(m.get("content"), str)
@@ -118,13 +114,22 @@ class TaskClassifier:
             latency_sensitive=budget_hint == "lowest_latency",
             estimated_context_tokens=int(ctx_estimate),
             preferred_output_format=self._detect_output_format(text),
+            confidence=confidence,
         )
 
-    def _detect_type(self, text: str) -> TaskType:
+    def _detect_type_scored(self, text: str) -> tuple[TaskType, float]:
+        """Score every task type and return the best match with confidence."""
+        scores: dict[TaskType, int] = {}
         for task_type, keywords in _TYPE_KEYWORDS:
-            if any(k in text for k in keywords):
-                return task_type
-        return TaskType.GENERAL
+            hits = sum(1 for k in keywords if k in text)
+            if hits:
+                scores[task_type] = hits
+        if not scores:
+            return TaskType.GENERAL, 0.5
+        best = max(scores, key=lambda t: scores[t])
+        total_hits = sum(scores.values())
+        confidence = round(min(scores[best] / max(total_hits, 1) + 0.3, 1.0), 2)
+        return best, confidence
 
     def _detect_complexity(self, text: str) -> Complexity:
         for complexity, keywords in _COMPLEXITY_KEYWORDS.items():

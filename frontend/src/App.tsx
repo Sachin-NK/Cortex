@@ -4,6 +4,7 @@ import {
   LayoutDashboard, MessageSquare, Cpu, PlayCircle, Code2,
   Wrench, BarChart3, Activity, Server, Key, Target,
 } from 'lucide-react'
+import { useToast, setGlobalToast } from './components/Toast'
 import Dashboard from './pages/Dashboard'
 import Chat from './pages/Chat'
 import Agents from './pages/Agents'
@@ -35,6 +36,10 @@ const nav = [
 export default function App() {
   const navigate = useNavigate()
   const location = useLocation()
+  const toast = useToast()
+
+  // Register global toast singleton so api.ts error handler can use it
+  useEffect(() => { setGlobalToast(toast) }, [toast])
 
   // Redirect new users to onboarding if no keys set and not already there
   useEffect(() => {

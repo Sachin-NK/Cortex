@@ -348,28 +348,29 @@ class WorkflowEngine:
             logger.info(f"Step {step.id} already completed - skipping (resumed run)")
             return
 
-        # Wait for dependencies
+        # Wait for dependencies — use asyncio.Event instead of busy-wait
         if step.depends_on:
-            for _ in range(120):  # 2 min max wait
+            deadline = asyncio.get_event_loop().time() + 120
+            while True:
                 if all(
                     run.results.get(d) and run.results[d].status == StepStatus.COMPLETED
                     for d in step.depends_on
                 ):
                     break
-                await asyncio.sleep(1)
-            else:
-                run.results[step.id] = StepResult(
-                    step_id=step.id, status=StepStatus.SKIPPED,
-                    error=f"Dependencies not met: {step.depends_on}"
-                )
-                return
+                if asyncio.get_event_loop().time() >= deadline:
+                    run.results[step.id] = StepResult(
+                        step_id=step.id, status=StepStatus.SKIPPED,
+                        error=f"Dependencies not met after 120s: {step.depends_on}"
+                    )
+                    return
+                await asyncio.sleep(0.5)
 
-        # Evaluate condition
+        # Evaluate condition safely (no arbitrary code execution via eval)
         if step.condition:
             try:
-                should_run = bool(eval(step.condition, {"context": run.context, "results": run.results}))  # noqa: S307
+                should_run = self._eval_condition(step.condition, run)
             except Exception as e:
-                logger.warning(f"Step {step.id} condition eval error: {e} - running anyway")
+                logger.warning(f"Step {step.id} condition error: {e} - running anyway")
                 should_run = True
             if not should_run:
                 run.results[step.id] = StepResult(step_id=step.id, status=StepStatus.SKIPPED,
@@ -391,13 +392,17 @@ class WorkflowEngine:
             if step.id in run.approval_queue:
                 run.approval_queue.remove(step.id)
 
-        # Execute with retries
+        # Execute with retries and per-step timeout
         run.results[step.id] = StepResult(step_id=step.id, status=StepStatus.RUNNING)
         last_error: Optional[str] = None
+        step_timeout = getattr(step, 'timeout_seconds', 120)
 
         for attempt in range(step.max_retries + 1):
             try:
-                result = await self._call_llm(step, run, initial_input, policy)
+                result = await asyncio.wait_for(
+                    self._call_llm(step, run, initial_input, policy),
+                    timeout=step_timeout,
+                )
                 result.attempts = attempt + 1
                 run.results[step.id] = result
                 run.total_cost_usd += result.cost_usd
@@ -407,8 +412,8 @@ class WorkflowEngine:
                     await on_step_complete(result)
                 return
 
-            except Exception as e:
-                last_error = str(e)
+            except (Exception, asyncio.TimeoutError) as e:
+                last_error = f"Timeout after {step_timeout}s" if isinstance(e, asyncio.TimeoutError) else str(e)
                 logger.warning(f"Step {step.id} attempt {attempt+1} failed: {e}")
                 if attempt < step.max_retries:
                     delay = 1.0 * (2 ** attempt)
@@ -503,7 +508,38 @@ class WorkflowEngine:
             cost_usd=response.cost_usd,
         )
 
-    # -- Serialization ---------------------------------------------------------
+    def _eval_condition(self, condition: str, run: "WorkflowRun") -> bool:
+        """
+        Safe condition evaluation supporting simple expressions only.
+        Supports: step_completed(id), step_failed(id), context_has(key), True, False.
+        No arbitrary code execution.
+        """
+        cond = condition.strip()
+        # Simple boolean literals
+        if cond in ("True", "true", "1"):
+            return True
+        if cond in ("False", "false", "0"):
+            return False
+        # step_completed("step_id")
+        import re as _re
+        m = _re.match(r'^step_completed\(["\'](.+)["\']\)$', cond)
+        if m:
+            sid = m.group(1)
+            r = run.results.get(sid)
+            return r is not None and r.status == StepStatus.COMPLETED
+        # step_failed("step_id")
+        m = _re.match(r'^step_failed\(["\'](.+)["\']\)$', cond)
+        if m:
+            sid = m.group(1)
+            r = run.results.get(sid)
+            return r is not None and r.status == StepStatus.FAILED
+        # context_has("key")
+        m = _re.match(r'^context_has\(["\'](.+)["\']\)$', cond)
+        if m:
+            return m.group(1) in run.context
+        # Fallback: log and allow
+        logger.warning(f"Unrecognised condition expression '{cond}' — treating as True")
+        return True
 
     def serialize_run(self, run: WorkflowRun) -> dict:
         return {

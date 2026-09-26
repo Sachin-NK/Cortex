@@ -17,7 +17,14 @@ function TermPane({ active }: { active: boolean }) {
 
   const connect = useCallback(() => {
     if (!mountedRef.current) return
-    const ws = new WebSocket('ws://localhost:8000/terminal')
+    // Use wss:// on HTTPS (Vercel), ws:// on HTTP (local). Dynamic host so it
+    // works both locally and on any deployment domain without hardcoding.
+    const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
+    const host = import.meta.env.VITE_API_URL
+      ? import.meta.env.VITE_API_URL.replace(/^https?:\/\//, '')
+      : window.location.host
+    const url = `${proto}://${host}/terminal`
+    const ws = new WebSocket(url)
     wsRef.current = ws
     ws.onopen = () => { if (mountedRef.current) setConnected(true) }
     ws.onmessage = e => termRef.current?.write(typeof e.data === 'string' ? e.data : '')
