@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
-import { GitBranch, Loader2, AlertCircle, Check, Plus, Minus, RefreshCw, GitCommit } from 'lucide-react'
+import { GitBranch, Loader2, AlertCircle, Check, Plus, Minus, RefreshCw, GitCommit, FileText } from 'lucide-react'
+
+type Tab = 'changes' | 'diff'
 
 interface GitFile { status: string; file: string }
 interface GitCommitEntry { hash: string; message: string }
@@ -18,6 +20,9 @@ export default function GitPanel() {
   const [committing, setCommitting] = useState(false)
   const [staged, setStaged] = useState<Set<string>>(new Set())
   const [lastCommit, setLastCommit] = useState('')
+  const [activeTab, setActiveTab] = useState<Tab>('changes')
+  const [diff, setDiff] = useState('')
+  const [loadingDiff, setLoadingDiff] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -27,6 +32,16 @@ export default function GitPanel() {
       setStatus(await r.json())
     } catch { setStatus(null) }
     finally { setLoading(false) }
+  }, [])
+
+  const loadDiff = useCallback(async () => {
+    setLoadingDiff(true)
+    try {
+      const r = await fetch('/api/git/diff')
+      const d = await r.json()
+      setDiff(d.diff || '(no changes)')
+    } catch { setDiff('Could not load diff') }
+    finally { setLoadingDiff(false) }
   }, [])
 
   useEffect(() => { load() }, [load])
@@ -98,7 +113,6 @@ export default function GitPanel() {
 
   return (
     <div className="flex flex-col h-full" style={{ color: '#d4d4d8' }}>
-      {/* Branch + refresh */}
       <div className="flex items-center justify-between px-3 py-2 shrink-0"
         style={{ borderBottom: '1px solid #1e1e24' }}>
         <div className="flex items-center gap-2">
@@ -111,6 +125,20 @@ export default function GitPanel() {
           onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#52525b'}>
           <RefreshCw size={12} />
         </button>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex shrink-0" style={{ borderBottom: '1px solid #1e1e24' }}>
+        {([['changes', 'Changes'], ['diff', 'Diff']] as const).map(([id, label]) => (
+          <button key={id} onClick={() => { setActiveTab(id); if (id === 'diff') loadDiff() }}
+            className="flex-1 py-1.5 text-xs transition-colors"
+            style={{
+              color: activeTab === id ? '#6366f1' : '#71717a',
+              borderBottom: activeTab === id ? '2px solid #6366f1' : '2px solid transparent',
+            }}>
+            {label}
+          </button>
+        ))}
       </div>
 
       <div className="flex-1 overflow-y-auto">
