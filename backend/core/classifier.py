@@ -39,6 +39,13 @@ class TaskClassification:
     requires_long_context: bool = False
     requires_code: bool = False
     requires_reasoning: bool = False
+    requires_tools: bool = False
+    security_sensitive: bool = False
+    cost_sensitive: bool = False
+    latency_sensitive: bool = False
+    estimated_context_tokens: int = 0
+    preferred_output_format: str = "text"
+    confidence: float = 1.0
 
     def is_high_stakes(self) -> bool:
         """Return True for critical complexity or security/architecture task types."""
@@ -47,13 +54,6 @@ class TaskClassification:
             TaskType.ARCHITECTURE_DESIGN,
             TaskType.FINAL_VERIFICATION,
         )
-    requires_tools: bool = False
-    security_sensitive: bool = False
-    cost_sensitive: bool = False
-    latency_sensitive: bool = False
-    estimated_context_tokens: int = 0
-    preferred_output_format: str = "text"  # text | json | markdown | code
-    confidence: float = 1.0
 
 
 # Keyword maps for heuristic classification
