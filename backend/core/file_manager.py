@@ -9,8 +9,18 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, List, Dict
 
-# Default workspace — configurable via env var
-DEFAULT_WORKSPACE = os.getenv("CORTEX_WORKSPACE", str(Path.home() / "cortex_workspace"))
+# On Vercel the home directory is read-only; use /tmp instead.
+# CORTEX_WORKSPACE env var overrides both.
+def _default_workspace() -> str:
+    env = os.getenv("CORTEX_WORKSPACE", "")
+    if env:
+        return env
+    # Vercel sets VERCEL=1; fall back to /tmp which is writable
+    if os.getenv("VERCEL") or not os.access(str(Path.home()), os.W_OK):
+        return "/tmp/cortex_workspace"
+    return str(Path.home() / "cortex_workspace")
+
+DEFAULT_WORKSPACE = _default_workspace()
 
 
 def _ensure_workspace(workspace: str) -> Path:
