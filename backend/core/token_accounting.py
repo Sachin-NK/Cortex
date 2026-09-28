@@ -1,8 +1,4 @@
 from __future__ import annotations
-"""
-Token and cost accounting — tracks usage per model, provider, agent, and workflow.
-Enforces Claude budget policies.
-"""
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
