@@ -1,6 +1,6 @@
 from __future__ import annotations
 """
-Agent Marketplace Registry — built-in agents + user-installed agents.
+Agent Marketplace Registry - built-in agents + user-installed agents.
 Each agent is a named WorkflowDefinition with pre-built steps.
 """
 import re

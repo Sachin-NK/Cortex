@@ -155,7 +155,7 @@ class ModelRegistry:
                 logger.info(f"Provider {provider} not configured (no {env_key})")
 
         if not found:
-            logger.warning("No providers configured — check your .env file")
+            logger.warning("No providers configured - check your .env file")
         return found
 
     def get_models_for_task(self, task_type: str) -> list[ModelEntry]:

@@ -44,7 +44,7 @@ BUILTIN_POLICIES: dict[PolicyType, Policy] = {
     PolicyType.LOWEST_COST: Policy(
         type=PolicyType.LOWEST_COST,
         name="Lowest Cost",
-        description="Minimize API costs — great when on a budget",
+        description="Minimize API costs - great when on a budget",
         preferred_providers=["deepseek", "gemini", "kimi"],
         budget_usd=5.0,
         quality_weight=0.1, cost_weight=0.8, latency_weight=0.1,

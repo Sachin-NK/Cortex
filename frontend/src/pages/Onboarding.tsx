@@ -39,7 +39,7 @@ export default function Onboarding() {
         <h1 className="text-4xl font-bold mb-3" style={{ color: '#f4f4f5' }}>Welcome to Cortex IDE</h1>
         <p className="text-base leading-relaxed" style={{ color: '#71717a' }}>
           A multi-model AI coding IDE that routes every task to the right model automatically.
-          Add your API keys to get started — they stay in your browser, never on our servers.
+          Add your API keys to get started - they stay in your browser, never on our servers.
         </p>
       </div>
 
@@ -128,7 +128,7 @@ export default function Onboarding() {
               ? <><Check size={16} /> Saved! Opening IDE…</>
               : filledCount > 0
                 ? <><ArrowRight size={16} /> Save {filledCount} key{filledCount > 1 ? 's' : ''} and open IDE</>
-                : <><ArrowRight size={16} /> Skip for now — open IDE</>}
+                : <><ArrowRight size={16} /> Skip for now - open IDE</>}
           </button>
           <p className="text-center text-xs mt-3" style={{ color: '#3f3f46' }}>
             Keys are stored in your browser only. You can add or change them anytime in Settings.
@@ -140,7 +140,7 @@ export default function Onboarding() {
       <div className="mt-6 max-w-md text-center">
         <p className="text-xs leading-relaxed" style={{ color: '#3f3f46' }}>
           Keys are saved to <code>localStorage</code> and sent as HTTP headers directly to AI providers.
-          No key ever touches Cortex servers in storage — only in transit for your requests.
+          No key ever touches Cortex servers in storage - only in transit for your requests.
         </p>
       </div>
     </div>

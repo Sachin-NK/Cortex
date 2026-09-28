@@ -1,5 +1,5 @@
 """
-Mock Provider — for testing without real API credentials.
+Mock Provider - for testing without real API credentials.
 Returns deterministic responses based on input content.
 """
 import time

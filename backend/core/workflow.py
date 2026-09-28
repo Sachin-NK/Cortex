@@ -343,7 +343,7 @@ class WorkflowEngine:
             logger.info(f"Step {step.id} already completed - skipping (resumed run)")
             return
 
-        # Wait for dependencies — use asyncio.Event instead of busy-wait
+        # Wait for dependencies - use asyncio.Event instead of busy-wait
         if step.depends_on:
             deadline = asyncio.get_event_loop().time() + 120
             while True:
@@ -533,7 +533,7 @@ class WorkflowEngine:
         if m:
             return m.group(1) in run.context
         # Fallback: log and allow
-        logger.warning(f"Unrecognised condition expression '{cond}' — treating as True")
+        logger.warning(f"Unrecognised condition expression '{cond}' - treating as True")
         return True
 
     def serialize_run(self, run: WorkflowRun) -> dict:

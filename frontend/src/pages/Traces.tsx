@@ -32,11 +32,11 @@ function EventRow({ event }: { event: TraceEvent }) {
           : <span className="w-[11px] shrink-0" />
         }
         <span className={`w-28 shrink-0 font-mono ${statusColor(event.status)}`}>{event.event_type}</span>
-        <span className="text-gray-500 w-16 shrink-0">{event.provider || '—'}</span>
-        <span className="text-gray-600 w-28 shrink-0 truncate">{event.model || '—'}</span>
-        <span className="text-gray-600 w-16 shrink-0 text-right">{event.latency_ms > 0 ? `${event.latency_ms}ms` : '—'}</span>
-        <span className="text-gray-600 w-14 shrink-0 text-right">{event.input_tokens + event.output_tokens > 0 ? `${event.input_tokens + event.output_tokens}t` : '—'}</span>
-        <span className="text-gray-600 flex-1 text-right">{event.cost_usd > 0 ? `$${event.cost_usd.toFixed(6)}` : '—'}</span>
+        <span className="text-gray-500 w-16 shrink-0">{event.provider || '-'}</span>
+        <span className="text-gray-600 w-28 shrink-0 truncate">{event.model || '-'}</span>
+        <span className="text-gray-600 w-16 shrink-0 text-right">{event.latency_ms > 0 ? `${event.latency_ms}ms` : '-'}</span>
+        <span className="text-gray-600 w-14 shrink-0 text-right">{event.input_tokens + event.output_tokens > 0 ? `${event.input_tokens + event.output_tokens}t` : '-'}</span>
+        <span className="text-gray-600 flex-1 text-right">{event.cost_usd > 0 ? `$${event.cost_usd.toFixed(6)}` : '-'}</span>
       </button>
       {open && hasDetail && (
         <div className="px-10 pb-2 text-xs text-gray-500 space-y-1">
@@ -117,7 +117,7 @@ export default function Traces() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-bold">Traces</h2>
-          <p className="text-xs text-gray-500 mt-0.5">Every request, routing decision, and LLM call — in full detail.</p>
+          <p className="text-xs text-gray-500 mt-0.5">Every request, routing decision, and LLM call - in full detail.</p>
         </div>
         <button
           onClick={load}

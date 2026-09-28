@@ -1,7 +1,7 @@
 # Cortex IDE
 
 Multi-model AI coding IDE. Routes every task to the right model automatically.
-Users bring their own API keys — stored in their browser, never on the server.
+Users bring their own API keys - stored in their browser, never on the server.
 
 ## Run locally
 

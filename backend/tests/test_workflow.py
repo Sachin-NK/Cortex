@@ -1,4 +1,4 @@
-"""Workflow engine tests — uses mock provider only, no real API keys needed."""
+"""Workflow engine tests - uses mock provider only, no real API keys needed."""
 from __future__ import annotations
 import pytest
 from typing import List, Optional

@@ -40,7 +40,7 @@ SECRET_PATTERNS = [
 # Path traversal patterns
 PATH_TRAVERSAL = re.compile(r"\.\.[/\\]")
 
-# Privacy tier definitions — controls which providers are allowed
+# Privacy tier definitions - controls which providers are allowed
 PRIVACY_TIERS = {
     "standard": {
         "description": "All providers available",
@@ -51,7 +51,7 @@ PRIVACY_TIERS = {
         "blocked_providers": ["deepseek", "kimi"],
     },
     "strict": {
-        "description": "Only Anthropic — best documented data policy, no API training",
+        "description": "Only Anthropic - best documented data policy, no API training",
         "blocked_providers": ["openai", "gemini", "deepseek", "kimi"],
     },
 }

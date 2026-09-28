@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class CircuitState(str, Enum):
     CLOSED = "closed"       # Normal operation
-    OPEN = "open"           # Failing — reject calls
+    OPEN = "open"           # Failing - reject calls
     HALF_OPEN = "half_open" # Testing recovery
 
 
@@ -67,7 +67,7 @@ async def with_retry(
 ):
     """Execute fn with exponential backoff and circuit-breaker integration."""
     if not circuit.allow_request():
-        raise RuntimeError(f"Circuit breaker OPEN for provider '{provider_id}' — skipping")
+        raise RuntimeError(f"Circuit breaker OPEN for provider '{provider_id}' - skipping")
 
     last_exc = None
     for attempt in range(max_retries):

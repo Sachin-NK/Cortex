@@ -1,4 +1,4 @@
-"""Tests that run WITHOUT real API credentials — uses mock provider only."""
+"""Tests that run WITHOUT real API credentials - uses mock provider only."""
 import pytest
 import asyncio
 from ..providers.mock import MockProvider

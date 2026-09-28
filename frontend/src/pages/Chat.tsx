@@ -82,12 +82,12 @@ export default function Chat() {
               })
             }
           } catch {
-            // malformed chunk — skip
+            // malformed chunk - skip
           }
         }
       }
 
-      // Finalize — mark streaming done, attach provider metadata
+      // Finalize - mark streaming done, attach provider metadata
       setMessages(prev => {
         const updated = [...prev]
         updated[updated.length - 1] = {

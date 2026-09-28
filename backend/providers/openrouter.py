@@ -1,5 +1,5 @@
 """
-OpenRouter provider — OpenAI-compatible gateway that gives access to
+OpenRouter provider - OpenAI-compatible gateway that gives access to
 100+ models (GPT-4o, Claude, Gemini, Llama, Mistral, etc.) through
 a single API key with unified billing.
 
@@ -25,7 +25,7 @@ OPENROUTER_MODELS = [
     "qwen/qwen-2.5-72b-instruct",
 ]
 
-# Default model — good balance of quality and cost
+# Default model - good balance of quality and cost
 DEFAULT_MODEL = "openai/gpt-4o-mini"
 
 

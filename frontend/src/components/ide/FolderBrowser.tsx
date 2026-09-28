@@ -155,7 +155,7 @@ export default function FolderBrowser({ onFilesLoaded, onClose }: Props) {
       onClose()
     } catch (e: any) {
       if (e.name === 'AbortError') {
-        // User cancelled — not an error
+        // User cancelled - not an error
       } else {
         setError(e.message || 'Failed to open folder')
       }

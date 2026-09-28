@@ -1,4 +1,4 @@
-"""Router tests — uses mock provider only."""
+"""Router tests - uses mock provider only."""
 import pytest
 from ..core.router import TaskRouter
 from ..core.policies import get_policy, PolicyType

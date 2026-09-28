@@ -1,6 +1,6 @@
 from __future__ import annotations
 """
-File Manager — safe workspace file operations for the IDE.
+File Manager - safe workspace file operations for the IDE.
 All paths are sandboxed to the configured workspace root.
 """
 import os
