@@ -2,15 +2,24 @@ from __future__ import annotations
 """
 Per-user API key and provider configuration store.
 """
-import sqlite3
-import json
 import os
+import json
+import sqlite3
 import time
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict
 from pathlib import Path
 
-_DB_PATH = os.getenv("CORTEX_STATE_DB", str(Path.home() / "AppData/Local/Temp/cortex_state.db"))
+def _default_db_path() -> str:
+    """Use /tmp on Vercel (read-only home), configurable via env var."""
+    env = os.getenv("CORTEX_STATE_DB", "")
+    if env:
+        return env
+    if os.getenv("VERCEL") or not os.access(str(Path.home()), os.W_OK):
+        return "/tmp/cortex_state.db"
+    return str(Path.home() / "AppData" / "Local" / "Temp" / "cortex_state.db")
+
+_DB_PATH = _default_db_path()
 
 KNOWN_PROVIDERS = [
     {"id": "openai",     "name": "OpenAI",          "env_key": "OPENAI_API_KEY",     "models": ["gpt-4o", "gpt-4o-mini", "o1", "o3"], "docs": "https://platform.openai.com/api-keys"},
