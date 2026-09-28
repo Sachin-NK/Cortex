@@ -1,15 +1,4 @@
 from __future__ import annotations
-"""
-Model Router - selects provider+model using the task classification,
-routing policy from the model registry, circuit breakers, privacy tier,
-and active user policy.
-
-Enforces:
-  - Claude budget policy (call count + token limits per workflow)
-  - Context compression before escalating to Claude (Kimi summarises first)
-  - Provider privacy tier restrictions
-  - Circuit-breaker gated fallback chain
-"""
 import logging
 from dataclasses import dataclass
 from typing import Optional, List
