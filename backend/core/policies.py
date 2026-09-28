@@ -15,30 +15,22 @@ class PolicyType(str, Enum):
     ENERGY_EFFICIENT = "energy_efficient"
     CUSTOM = "custom"
 
-
 @dataclass
 class Policy:
     type: PolicyType
     name: str
     description: str
-    # Cost budget in USD per session (None = unlimited)
     budget_usd: Optional[float] = None
-    # Preferred providers in order
     preferred_providers: list[str] = field(default_factory=list)
-    # Providers to completely avoid
     avoid_providers: list[str] = field(default_factory=list)
-    # Max latency acceptable in ms
     max_latency_ms: Optional[int] = None
-
-    def is_provider_allowed(self, provider_id: str) -> bool:
-        """Return False if the provider is explicitly avoided by this policy."""
-        return provider_id not in self.avoid_providers
-    # Require on-prem / local models
     local_only: bool = False
-    # Custom weights for scoring (quality, cost, latency) — must sum to 1.0
     quality_weight: float = 0.33
     cost_weight: float = 0.33
     latency_weight: float = 0.34
+
+    def is_provider_allowed(self, provider_id: str) -> bool:
+        return provider_id not in self.avoid_providers
 
 
 BUILTIN_POLICIES: dict[PolicyType, Policy] = {
