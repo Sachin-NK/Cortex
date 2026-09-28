@@ -46,8 +46,8 @@ ALLOWED_ORIGINS = [o.strip() for o in _raw_origins.split(",")] if _raw_origins !
 
 app = FastAPI(
     title="Cortex",
-    version="2.0.0",
-    description="Multi-Model AI Agent Harness - provider-agnostic, Claude-efficient",
+    version=VERSION,
+    description="Multi-Model AI Agent Harness",
 )
 app.add_middleware(
     CORSMiddleware,
