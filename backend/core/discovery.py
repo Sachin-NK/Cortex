@@ -1,8 +1,4 @@
 from __future__ import annotations
-"""
-Provider Discovery — auto-detect configured providers from environment
-variables and YAML config. Builds the live model registry.
-"""
 import os
 import logging
 from dataclasses import dataclass, field
