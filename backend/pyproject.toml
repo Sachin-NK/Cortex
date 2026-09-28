@@ -1,0 +1,8 @@
+[project]
+name = "cortex-backend"
+version = "2.0.0"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.vercel]
+entrypoint = "main:app"
