@@ -1,11 +1,4 @@
 from __future__ import annotations
-"""
-Memory subsystem with separate scopes:
-  - workflow   : scoped to a single workflow run
-  - project    : persists across workflows for the same project
-  - agent      : agent-local working memory
-  - long_term  : approved persistent memory
-"""
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
@@ -59,7 +52,6 @@ class Session:
     total_tokens: int = 0
 
     def add_message(self, message: Message) -> None:
-        """Append a message and update running cost/token totals."""
         self.messages.append(message)
         self.total_cost_usd += message.cost_usd
         self.total_tokens += message.tokens
