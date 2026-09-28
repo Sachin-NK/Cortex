@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, Response
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Tuple
 import os
@@ -186,12 +186,12 @@ class MemoryWriteRequest(BaseModel):
 
 @app.get("/health")
 async def health():
-    """Lightweight liveness probe - no external calls."""
-    return {
-        "status": "ok",
-        "version": "2.0.0",
-        "providers_configured": len(providers),
-    }
+    return {"status": "ok", "version": VERSION, "providers_configured": len(providers)}
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return Response(status_code=204)
 
 
 # -- Chat -----------------------------------------------------------------------
