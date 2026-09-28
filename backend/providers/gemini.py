@@ -9,6 +9,11 @@ try:
 except ImportError:
     try:
         import google.generativeai as genai  # type: ignore
+        genai_types = None  # type: ignore
+        _NEW_SDK = False
+    except ImportError:
+        genai = None  # type: ignore
+        genai_types = None  # type: ignore
         _NEW_SDK = False
     except ImportError:
         genai = None  # type: ignore
