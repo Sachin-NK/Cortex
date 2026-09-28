@@ -1,7 +1,4 @@
 from __future__ import annotations
-"""
-Observability — structured execution traces, audit logs.
-"""
 import uuid
 import logging
 from dataclasses import dataclass, field
