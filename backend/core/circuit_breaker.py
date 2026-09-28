@@ -1,7 +1,4 @@
 from __future__ import annotations
-"""
-Circuit Breaker + Exponential Backoff for provider reliability.
-"""
 import asyncio
 import time
 import logging
