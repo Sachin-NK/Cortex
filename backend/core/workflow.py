@@ -1,13 +1,4 @@
 from __future__ import annotations
-"""
-Workflow Engine - executes multi-step AI pipelines with:
-  - Sequential and parallel steps
-  - Conditional branching
-  - Retry loops with exponential backoff
-  - Failure branches / escalation
-  - Human approval gates
-  - SQLite-backed checkpointing and resumption
-"""
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional, Any, Callable, Awaitable
