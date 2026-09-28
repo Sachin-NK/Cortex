@@ -15,7 +15,10 @@ from ..providers.base import LLMRequest
 logger = logging.getLogger(__name__)
 
 # SQLite DB path - configurable via env var
-_DB_PATH = os.getenv("CORTEX_STATE_DB", "/tmp/cortex_state.db")
+_DB_PATH = os.getenv("CORTEX_STATE_DB") or (
+    "/tmp/cortex_state.db" if (os.getenv("VERCEL") or not __import__('pathlib').Path.home().exists())
+    else str(__import__('pathlib').Path.home() / "AppData" / "Local" / "Temp" / "cortex_state.db")
+)
 
 
 # -- Data models ---------------------------------------------------------------
