@@ -1,5 +1,5 @@
 import pytest
-from ..core.token_accounting import TokenAccountant, UsageRecord, ClaudeBudgetPolicy
+from core.token_accounting import TokenAccountant, UsageRecord, ClaudeBudgetPolicy
 
 
 @pytest.fixture

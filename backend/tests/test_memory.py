@@ -1,6 +1,6 @@
 """Memory subsystem tests."""
 import pytest
-from ..core.memory import MemoryStore, MemoryScope, Message
+from core.memory import MemoryStore, MemoryScope, Message
 
 
 @pytest.fixture

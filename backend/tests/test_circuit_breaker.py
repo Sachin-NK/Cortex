@@ -1,7 +1,7 @@
 """Circuit breaker and retry tests."""
 import pytest
 import asyncio
-from ..core.circuit_breaker import CircuitBreaker, CircuitState, with_retry
+from core.circuit_breaker import CircuitBreaker, CircuitState, with_retry
 
 
 def test_initial_state_closed():

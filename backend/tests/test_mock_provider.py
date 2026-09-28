@@ -1,8 +1,8 @@
 """Tests that run WITHOUT real API credentials - uses mock provider only."""
 import pytest
 import asyncio
-from ..providers.mock import MockProvider
-from ..providers.base import LLMRequest, ProviderStatus
+from providers.mock import MockProvider
+from providers.base import LLMRequest, ProviderStatus
 
 
 @pytest.fixture

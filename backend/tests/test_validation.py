@@ -1,5 +1,5 @@
 import pytest
-from ..core.validation import OutputValidator
+from core.validation import OutputValidator
 
 
 @pytest.fixture

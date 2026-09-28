@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pytest
-from ..core.classifier import TaskClassifier, TaskType, Complexity
+from core.classifier import TaskClassifier, TaskType, Complexity
 
 
 @pytest.fixture

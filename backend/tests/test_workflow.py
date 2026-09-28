@@ -2,14 +2,14 @@
 from __future__ import annotations
 import pytest
 from typing import List, Optional
-from ..core.workflow import (
+from core.workflow import (
     WorkflowEngine, WorkflowDefinition, WorkflowStep, StepStatus, CheckpointStore,
 )
-from ..core.router import TaskRouter
-from ..core.policies import get_policy, PolicyType
-from ..core.discovery import ModelRegistry
-from ..core.token_accounting import TokenAccountant
-from ..providers.mock import MockProvider
+from core.router import TaskRouter
+from core.policies import get_policy, PolicyType
+from core.discovery import ModelRegistry
+from core.token_accounting import TokenAccountant
+from providers.mock import MockProvider
 import uuid
 import os
 

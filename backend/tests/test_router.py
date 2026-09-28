@@ -1,11 +1,11 @@
 """Router tests - uses mock provider only."""
 import pytest
-from ..core.router import TaskRouter
-from ..core.policies import get_policy, PolicyType
-from ..core.discovery import ModelRegistry
-from ..core.token_accounting import TokenAccountant
-from ..providers.mock import MockProvider
-from ..providers.base import LLMRequest
+from core.router import TaskRouter
+from core.policies import get_policy, PolicyType
+from core.discovery import ModelRegistry
+from core.token_accounting import TokenAccountant
+from providers.mock import MockProvider
+from providers.base import LLMRequest
 
 
 @pytest.fixture

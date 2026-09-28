@@ -1,5 +1,5 @@
 import pytest
-from ..core.security import SecurityEngine, SecurityPolicy
+from core.security import SecurityEngine, SecurityPolicy
 
 
 @pytest.fixture

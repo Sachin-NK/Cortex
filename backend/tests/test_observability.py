@@ -1,6 +1,6 @@
 """Observability / trace store tests."""
 import pytest
-from ..core.observability import TraceStore, TraceEvent, ExecutionTrace
+from core.observability import TraceStore, TraceEvent, ExecutionTrace
 
 
 @pytest.fixture
