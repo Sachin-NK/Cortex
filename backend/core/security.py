@@ -1,13 +1,4 @@
 from __future__ import annotations
-"""
-Security Policy Engine — tool allowlists, command approval gates,
-secret redaction, path traversal protection, and data privacy controls.
-
-Privacy tiers:
-  - standard  : All 5 providers available
-  - sensitive  : Disables DeepSeek and Kimi (non-transparent data policies)
-  - strict     : Only Anthropic (best data policy, no training on API data)
-"""
 import os
 import re
 from dataclasses import dataclass, field
