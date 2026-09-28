@@ -58,6 +58,12 @@ app.add_middleware(
     expose_headers=["X-Request-Id"],
 )
 
+# All routes go on this router with /api prefix so Vercel rewrite works.
+# Vercel sends /api/xxx to backend which receives /api/xxx,
+# FastAPI routes are at /api/xxx -> match.
+from fastapi import APIRouter as _APIRouter
+api_router = _APIRouter(prefix="/api")
+
 
 # -- Bootstrap ------------------------------------------------------------------
 def _build_providers() -> dict:
@@ -190,19 +196,19 @@ class MemoryWriteRequest(BaseModel):
 
 # -- Health ---------------------------------------------------------------------
 
-@app.get("/health")
+@api_router.get("/health")
 async def health():
     return {"status": "ok", "version": VERSION, "providers_configured": len(providers)}
 
 
-@app.get("/favicon.ico", include_in_schema=False)
+@api_router.get("/favicon.ico", include_in_schema=False)
 async def favicon():
     return Response(status_code=204)
 
 
 # -- Chat -----------------------------------------------------------------------
 
-@app.post("/chat")
+@api_router.post("/chat")
 async def chat(req: ChatRequest, request: Request):
     req_providers = _get_request_providers(request)
     req_router = _build_request_router(req_providers) if req_providers != providers else router
@@ -295,7 +301,7 @@ async def chat(req: ChatRequest, request: Request):
 
 # -- Agents ---------------------------------------------------------------------
 
-@app.get("/agents")
+@api_router.get("/agents")
 async def list_agents(tag: Optional[str] = None):
     return [
         {
@@ -308,7 +314,7 @@ async def list_agents(tag: Optional[str] = None):
     ]
 
 
-@app.post("/agents/run")
+@api_router.post("/agents/run")
 async def run_agent(req: RunAgentRequest, background_tasks: BackgroundTasks):
     agent = agent_registry.get_agent(req.agent_id)
     if not agent:
@@ -348,19 +354,19 @@ async def run_agent(req: RunAgentRequest, background_tasks: BackgroundTasks):
     }
 
 
-@app.get("/agents/runs")
+@api_router.get("/agents/runs")
 async def list_runs():
     runs = workflow_engine.list_runs()
     return [workflow_engine.serialize_run(r) for r in runs]
 
 
-@app.get("/agents/runs/history")
+@api_router.get("/agents/runs/history")
 async def list_run_history():
     """All persisted runs from SQLite."""
     return checkpoints.list_runs()
 
 
-@app.get("/agents/runs/{run_id}")
+@api_router.get("/agents/runs/{run_id}")
 async def get_run_status(run_id: str):
     run = workflow_engine.get_run(run_id)
     if not run:
@@ -368,13 +374,13 @@ async def get_run_status(run_id: str):
     return workflow_engine.serialize_run(run)
 
 
-@app.post("/agents/runs/approve")
+@api_router.post("/agents/runs/approve")
 async def approve_step(req: ApproveStepRequest):
     await workflow_engine.approve_step(req.run_id, req.step_id)
     return {"approved": True}
 
 
-@app.get("/agents/runs/{run_id}/output")
+@api_router.get("/agents/runs/{run_id}/output")
 async def get_run_output(run_id: str):
     run = workflow_engine.get_run(run_id)
     if not run:
@@ -386,13 +392,13 @@ async def get_run_output(run_id: str):
 
 # -- Providers & Models ---------------------------------------------------------
 
-@app.get("/providers/circuits")
+@api_router.get("/providers/circuits")
 async def circuit_stats():
     """Return circuit breaker state for every configured provider."""
     return router.circuit_stats()
 
 
-@app.get("/providers")
+@api_router.get("/providers")
 async def list_providers():
     await _maybe_refresh_health()
     result = []
@@ -416,12 +422,12 @@ async def list_providers():
     return result
 
 
-@app.get("/models")
+@api_router.get("/models")
 async def list_models():
     return registry.list_all()
 
 
-@app.get("/policies")
+@api_router.get("/policies")
 async def list_policies():
     return [
         {
@@ -435,19 +441,19 @@ async def list_policies():
 
 # -- Costs & Accounting ---------------------------------------------------------
 
-@app.get("/costs")
+@api_router.get("/costs")
 async def costs_report(workflow_id: Optional[str] = None):
     return accountant.get_report(workflow_id)
 
 
 # -- Traces ---------------------------------------------------------------------
 
-@app.get("/traces")
+@api_router.get("/traces")
 async def list_traces():
     return trace_store.list()
 
 
-@app.get("/traces/{trace_id}")
+@api_router.get("/traces/{trace_id}")
 async def get_trace(trace_id: str):
     trace = trace_store.get(trace_id)
     if not trace:
@@ -457,7 +463,7 @@ async def get_trace(trace_id: str):
 
 # -- MCP Tools ------------------------------------------------------------------
 
-@app.get("/mcp/tools")
+@api_router.get("/mcp/tools")
 async def list_mcp_tools():
     return [
         {"id": t.id, "name": t.name, "description": t.description}
@@ -465,7 +471,7 @@ async def list_mcp_tools():
     ]
 
 
-@app.post("/mcp/invoke/{tool_id}")
+@api_router.post("/mcp/invoke/{tool_id}")
 async def invoke_mcp_tool(tool_id: str, args: dict = {}):
     allowed, reason = security.check_tool_allowed(tool_id)
     if not allowed:
@@ -481,7 +487,7 @@ async def invoke_mcp_tool(tool_id: str, args: dict = {}):
 
 # -- Sessions -------------------------------------------------------------------
 
-@app.get("/sessions")
+@api_router.get("/sessions")
 async def list_sessions():
     return [
         {"id": s.id, "created_at": s.created_at, **memory.get_stats(s.id)}
@@ -489,7 +495,7 @@ async def list_sessions():
     ]
 
 
-@app.delete("/sessions/{session_id}")
+@api_router.delete("/sessions/{session_id}")
 async def delete_session(session_id: str):
     if not memory.delete_session(session_id):
         raise HTTPException(status_code=404, detail="Session not found")
@@ -498,7 +504,7 @@ async def delete_session(session_id: str):
 
 # -- Memory ---------------------------------------------------------------------
 
-@app.post("/memory")
+@api_router.post("/memory")
 async def write_memory(req: MemoryWriteRequest):
     try:
         scope = MemoryScope(req.scope)
@@ -512,7 +518,7 @@ async def write_memory(req: MemoryWriteRequest):
     return {"id": entry.id, "key": entry.key, "scope": entry.scope}
 
 
-@app.get("/memory/{scope}")
+@api_router.get("/memory/{scope}")
 async def read_memory(scope: str):
     try:
         ms = MemoryScope(scope)
@@ -528,7 +534,7 @@ async def read_memory(scope: str):
     ]
 
 
-@app.delete("/memory/{entry_id}")
+@api_router.delete("/memory/{entry_id}")
 async def delete_memory_entry(entry_id: str):
     if not memory.delete_entry(entry_id):
         raise HTTPException(status_code=404, detail="Memory entry not found")
@@ -537,12 +543,12 @@ async def delete_memory_entry(entry_id: str):
 
 # -- Security -------------------------------------------------------------------
 
-@app.get("/security")
+@api_router.get("/security")
 async def security_summary():
     return security.get_privacy_summary()
 
 
-@app.get("/security/redact")
+@api_router.get("/security/redact")
 async def redact_test(text: str):
     """Utility endpoint - redact secrets from a text sample."""
     return {"original_length": len(text), "redacted": security.redact_secrets(text)}
@@ -550,7 +556,7 @@ async def redact_test(text: str):
 
 # -- Dashboard ------------------------------------------------------------------
 
-@app.get("/dashboard")
+@api_router.get("/dashboard")
 async def dashboard():
     await _maybe_refresh_health()
     sessions = memory.list_sessions()
@@ -610,13 +616,13 @@ def _entry_to_dict(e) -> dict:
     return d
 
 
-@app.get("/files")
+@api_router.get("/files")
 async def list_files(path: str = "", depth: int = 4):
     entries = file_mgr.list_dir(path, depth=depth)
     return [_entry_to_dict(e) for e in entries]
 
 
-@app.get("/files/read")
+@api_router.get("/files/read")
 async def read_file_endpoint(path: str):
     try:
         content = file_mgr.read_file(path)
@@ -627,7 +633,7 @@ async def read_file_endpoint(path: str):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.post("/files/write")
+@api_router.post("/files/write")
 async def write_file_endpoint(path: str, req: WriteFileRequest):
     try:
         result = file_mgr.write_file(path, req.content)
@@ -638,7 +644,7 @@ async def write_file_endpoint(path: str, req: WriteFileRequest):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.post("/files/create")
+@api_router.post("/files/create")
 async def create_file_endpoint(path: str, req: CreateRequest):
     try:
         if req.is_dir:
@@ -648,7 +654,7 @@ async def create_file_endpoint(path: str, req: CreateRequest):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.delete("/files/delete")
+@api_router.delete("/files/delete")
 async def delete_file_endpoint(path: str):
     try:
         return file_mgr.delete(path)
@@ -658,7 +664,7 @@ async def delete_file_endpoint(path: str):
         raise HTTPException(status_code=403, detail=str(e))
 
 
-@app.post("/files/rename")
+@api_router.post("/files/rename")
 async def rename_file_endpoint(path: str, req: RenameRequest):
     try:
         return file_mgr.rename(path, req.new_name)
@@ -666,12 +672,12 @@ async def rename_file_endpoint(path: str, req: RenameRequest):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.post("/files/search")
+@api_router.post("/files/search")
 async def search_files(req: SearchRequest):
     return file_mgr.search(req.query, req.path, req.extensions)
 
 
-@app.get("/files/workspace")
+@api_router.get("/files/workspace")
 async def get_workspace():
     return {"workspace": file_mgr.workspace_path}
 
@@ -853,7 +859,7 @@ def _build_ide_messages(req: "CodeActionRequest") -> List[Dict]:
     ]
 
 
-@app.post("/ide/action")
+@api_router.post("/ide/action")
 async def code_action(req: CodeActionRequest):
     """
     Run an AI code action with rich context.
@@ -915,7 +921,7 @@ import threading
 import sys
 
 
-@app.websocket("/terminal")
+@app.websocket("/api/terminal")
 async def terminal_ws(websocket: WebSocket):
     await websocket.accept()
     workspace = file_mgr.workspace_path
@@ -981,7 +987,7 @@ class ProviderConfigRequest(BaseModel):
     notes: str = ""
 
 
-@app.get("/user/providers")
+@api_router.get("/user/providers")
 async def get_user_providers():
     """Return all known providers with their current user config and live status."""
     all_configs = user_cfg.load_all()
@@ -1023,7 +1029,7 @@ async def get_user_providers():
     return result
 
 
-@app.post("/user/providers/{provider_id}")
+@api_router.post("/user/providers/{provider_id}")
 async def save_user_provider(provider_id: str, req: ProviderConfigRequest):
     """Save user-supplied API key and limits for a provider. Applies immediately."""
     known = {p["id"] for p in KNOWN_PROVIDERS}
@@ -1057,7 +1063,7 @@ async def save_user_provider(provider_id: str, req: ProviderConfigRequest):
     return {"saved": True, "provider_id": provider_id, "is_active": provider_id in providers}
 
 
-@app.delete("/user/providers/{provider_id}")
+@api_router.delete("/user/providers/{provider_id}")
 async def delete_user_provider(provider_id: str):
     """Remove user-supplied config (falls back to .env key if present)."""
     user_cfg.delete(provider_id)
@@ -1082,7 +1088,7 @@ def _default_model(provider_id: str) -> str:
     return defaults.get(provider_id, "")
 
 
-@app.get("/user/task-types")
+@api_router.get("/user/task-types")
 async def list_task_types():
     """Return all supported task types for limit configuration."""
     from .core.classifier import TaskType
@@ -1098,7 +1104,7 @@ class SetWorkspaceRequest(BaseModel):
     path: str
 
 
-@app.post("/workspace/set")
+@api_router.post("/workspace/set")
 async def set_workspace(req: SetWorkspaceRequest):
     """Change the active workspace to any absolute path on the device."""
     p = req.path.strip()
@@ -1112,7 +1118,7 @@ async def set_workspace(req: SetWorkspaceRequest):
     return {"workspace": p, "status": "ok"}
 
 
-@app.get("/workspace/drives")
+@api_router.get("/workspace/drives")
 async def list_drives():
     """List available drives / root folders (Windows: C:\\, D:\\  |  Unix: /)"""
     import string, subprocess, sys as _sys
@@ -1129,7 +1135,7 @@ async def list_drives():
     return roots
 
 
-@app.get("/workspace/browse")
+@api_router.get("/workspace/browse")
 async def browse_dir(path: str = ""):
     """List immediate children of any path on the device (no depth limit guard)."""
     target = path or _os.path.expanduser("~")
@@ -1218,7 +1224,7 @@ class OptimizationConfigRequest(BaseModel):
     budget_policy: dict = {}
 
 
-@app.get("/optimization/config")
+@api_router.get("/optimization/config")
 async def get_optimization_config():
     cfg = _get_optimization_config()
     # Enrich with live provider info
@@ -1244,7 +1250,7 @@ async def get_optimization_config():
     }
 
 
-@app.post("/optimization/config")
+@api_router.post("/optimization/config")
 async def save_optimization_config(req: OptimizationConfigRequest):
     valid_optimize_for = {"cost", "quality", "latency", "balanced"}
     if req.optimize_for not in valid_optimize_for:
@@ -1278,7 +1284,7 @@ async def save_optimization_config(req: OptimizationConfigRequest):
     return {"saved": True, "orchestrator": req.orchestrator}
 
 
-@app.get("/optimization/report")
+@api_router.get("/optimization/report")
 async def optimization_report():
     """Returns efficiency report for the configured orchestrator (not just Claude)."""
     cfg = _get_optimization_config()
@@ -1325,6 +1331,9 @@ async def optimization_report():
     }
 
 
+# Register all routes
+app.include_router(api_router)
+
 # Git endpoints
 import subprocess as _subprocess
 
@@ -1342,7 +1351,7 @@ def _git(args: List[str], cwd: str) -> Tuple[bool, str]:
     except Exception as e:
         return False, str(e)
 
-@app.get("/git/status")
+@api_router.get("/git/status")
 async def git_status():
     cwd = file_mgr.workspace_path
     ok, out = _git(["rev-parse", "--is-inside-work-tree"], cwd)
@@ -1360,7 +1369,7 @@ async def git_status():
     commits = [{"hash": l[:7], "message": l[8:]} for l in log_out.splitlines() if len(l) > 8]
     return {"branch": branch_out, "files": files, "recent_commits": commits}
 
-@app.post("/git/stage")
+@api_router.post("/git/stage")
 async def git_stage(req: GitCommitRequest):
     cwd = file_mgr.workspace_path
     files = req.files or ["."]
@@ -1369,7 +1378,7 @@ async def git_stage(req: GitCommitRequest):
         raise HTTPException(status_code=400, detail=out)
     return {"staged": True, "output": out}
 
-@app.post("/git/commit")
+@api_router.post("/git/commit")
 async def git_commit(req: GitCommitRequest):
     cwd = file_mgr.workspace_path
     if not req.message.strip():
@@ -1379,7 +1388,7 @@ async def git_commit(req: GitCommitRequest):
         raise HTTPException(status_code=400, detail=out)
     return {"committed": True, "output": out}
 
-@app.get("/git/diff")
+@api_router.get("/git/diff")
 async def git_diff(file: str = ""):
     cwd = file_mgr.workspace_path
     args = ["diff", "HEAD", "--", file] if file else ["diff", "HEAD"]
