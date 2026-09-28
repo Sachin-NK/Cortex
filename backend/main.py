@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Tuple
 import os
 import time
 import asyncio
@@ -1326,7 +1326,7 @@ class GitCommitRequest(BaseModel):
     message: str
     files: List[str] = []
 
-def _git(args: List[str], cwd: str) -> tuple[bool, str]:
+def _git(args: List[str], cwd: str) -> Tuple[bool, str]:
     try:
         r = _subprocess.run(
             ["git"] + args, cwd=cwd,
