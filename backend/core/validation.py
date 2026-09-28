@@ -1,8 +1,5 @@
 from __future__ import annotations
-"""
-Output Validation — validates model outputs using JSON schema, Pydantic,
-and a producer-reviewer pattern.
-"""
+from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass
