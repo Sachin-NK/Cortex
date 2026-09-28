@@ -19,7 +19,7 @@ except ImportError:
         genai = None  # type: ignore
         _NEW_SDK = False
 
-from .base import BaseProvider, LLMRequest, LLMResponse, ModelCapabilities, ProviderMeta, ProviderStatus
+from providers.base import BaseProvider, LLMRequest, LLMResponse, ModelCapabilities, ProviderMeta, ProviderStatus
 
 
 class GeminiProvider(BaseProvider):

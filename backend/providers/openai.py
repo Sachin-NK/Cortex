@@ -1,7 +1,7 @@
 import time
 from typing import AsyncIterator
 from openai import AsyncOpenAI
-from .base import BaseProvider, LLMRequest, LLMResponse, ModelCapabilities, ProviderMeta, ProviderStatus
+from providers.base import BaseProvider, LLMRequest, LLMResponse, ModelCapabilities, ProviderMeta, ProviderStatus
 
 
 class OpenAIProvider(BaseProvider):

@@ -1,3 +1,9 @@
+import sys as _sys
+import os as _os
+_backend_dir = _os.path.dirname(_os.path.abspath(__file__))
+if _backend_dir not in _sys.path:
+    _sys.path.insert(0, _backend_dir)
+
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, Response
@@ -12,20 +18,20 @@ from dotenv import load_dotenv
 
 load_dotenv()  # Load .env before reading any env vars
 
-from .providers import PROVIDER_MAP
-from .providers.base import LLMRequest
-from .core.router import TaskRouter
-from .core.policies import PolicyType, get_policy, BUILTIN_POLICIES
-from .core.memory import MemoryStore, Message, MemoryScope
-from .core.workflow import WorkflowEngine, CheckpointStore
-from .core.discovery import ModelRegistry
-from .core.token_accounting import TokenAccountant, ClaudeBudgetPolicy
-from .core.observability import TraceStore, TraceEvent
-from .core.security import SecurityEngine
-from .core.validation import OutputValidator
-from .core.classifier import TaskClassifier
-from .agents.registry import AgentRegistry
-from .mcp.orchestrator import MCPOrchestrator
+from providers import PROVIDER_MAP
+from providers.base import LLMRequest
+from core.router import TaskRouter
+from core.policies import PolicyType, get_policy, BUILTIN_POLICIES
+from core.memory import MemoryStore, Message, MemoryScope
+from core.workflow import WorkflowEngine, CheckpointStore
+from core.discovery import ModelRegistry
+from core.token_accounting import TokenAccountant, ClaudeBudgetPolicy
+from core.observability import TraceStore, TraceEvent
+from core.security import SecurityEngine
+from core.validation import OutputValidator
+from core.classifier import TaskClassifier
+from agents.registry import AgentRegistry
+from mcp.orchestrator import MCPOrchestrator
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -572,8 +578,8 @@ async def dashboard():
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # IDE / FILE MANAGER ENDPOINTS
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-from .core.file_manager import FileManager
-from .core.user_config import UserConfigStore, ProviderConfig, KNOWN_PROVIDERS
+from core.file_manager import FileManager
+from core.user_config import UserConfigStore, ProviderConfig, KNOWN_PROVIDERS
 
 file_mgr = FileManager()
 user_cfg = UserConfigStore()

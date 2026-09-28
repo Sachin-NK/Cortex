@@ -10,7 +10,7 @@ import sqlite3
 import time
 import os
 
-from ..providers.base import LLMRequest
+from providers.base import LLMRequest
 
 logger = logging.getLogger(__name__)
 

@@ -5,7 +5,7 @@ Each agent is a named WorkflowDefinition with pre-built steps.
 """
 import re
 from typing import Optional, List
-from ..core.workflow import WorkflowDefinition, WorkflowStep
+from core.workflow import WorkflowDefinition, WorkflowStep
 
 
 def _step(name: str, role: str, prompt: str, provider: Optional[str] = None, approval: bool = False) -> WorkflowStep:

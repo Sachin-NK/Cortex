@@ -1,11 +1,11 @@
-from .base import BaseProvider, LLMRequest, LLMResponse, ProviderMeta, ProviderStatus, ModelCapabilities
-from .openai import OpenAIProvider
-from .anthropic import AnthropicProvider
-from .gemini import GeminiProvider
-from .deepseek import DeepSeekProvider
-from .kimi import KimiProvider
-from .openrouter import OpenRouterProvider
-from .mock import MockProvider
+from providers.base import BaseProvider, LLMRequest, LLMResponse, ProviderMeta, ProviderStatus, ModelCapabilities
+from providers.openai import OpenAIProvider
+from providers.anthropic import AnthropicProvider
+from providers.gemini import GeminiProvider
+from providers.deepseek import DeepSeekProvider
+from providers.kimi import KimiProvider
+from providers.openrouter import OpenRouterProvider
+from providers.mock import MockProvider
 
 PROVIDER_MAP = {
     "openai": OpenAIProvider,

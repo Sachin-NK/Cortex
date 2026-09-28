@@ -8,7 +8,7 @@ Docs: https://openrouter.ai/docs
 import time
 from typing import AsyncIterator
 from openai import AsyncOpenAI
-from .base import BaseProvider, LLMRequest, LLMResponse, ModelCapabilities, ProviderMeta, ProviderStatus
+from providers.base import BaseProvider, LLMRequest, LLMResponse, ModelCapabilities, ProviderMeta, ProviderStatus
 
 # Curated list of high-quality models available on OpenRouter
 OPENROUTER_MODELS = [

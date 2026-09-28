@@ -5,7 +5,7 @@ Returns deterministic responses based on input content.
 import time
 import hashlib
 from typing import AsyncIterator
-from .base import BaseProvider, LLMRequest, LLMResponse, ModelCapabilities, ProviderMeta, ProviderStatus
+from providers.base import BaseProvider, LLMRequest, LLMResponse, ModelCapabilities, ProviderMeta, ProviderStatus
 
 
 MOCK_RESPONSES = {

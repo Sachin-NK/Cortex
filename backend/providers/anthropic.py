@@ -1,7 +1,7 @@
 import time
 from typing import AsyncIterator
 import anthropic
-from .base import BaseProvider, LLMRequest, LLMResponse, ModelCapabilities, ProviderMeta, ProviderStatus
+from providers.base import BaseProvider, LLMRequest, LLMResponse, ModelCapabilities, ProviderMeta, ProviderStatus
 
 
 class AnthropicProvider(BaseProvider):
