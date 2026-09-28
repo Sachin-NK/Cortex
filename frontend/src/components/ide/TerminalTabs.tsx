@@ -23,7 +23,7 @@ function TermPane({ active }: { active: boolean }) {
     const host = import.meta.env.VITE_API_URL
       ? import.meta.env.VITE_API_URL.replace(/^https?:\/\//, '')
       : window.location.host
-    const url = `${proto}://${host}/terminal`
+    const url = `${proto}://${host}/api/terminal`
     const ws = new WebSocket(url)
     wsRef.current = ws
     ws.onopen = () => { if (mountedRef.current) setConnected(true) }
