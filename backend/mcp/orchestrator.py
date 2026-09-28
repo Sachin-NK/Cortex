@@ -1,22 +1,4 @@
 from __future__ import annotations
-"""
-MCP Tool Orchestrator - developer-focused tools that integrate with
-real APIs and utilities useful in an AI coding assistant context.
-
-Built-in tools:
-  - code_lint       : Lint Python code using pyflakes
-  - code_format     : Format Python code using black style rules
-  - regex_test      : Test a regex pattern against input strings
-  - json_validate   : Validate and pretty-print JSON
-  - hash_text       : Hash text with common algorithms (md5, sha256, etc.)
-  - base64_encode   : Encode/decode base64
-  - uuid_generate   : Generate UUIDs
-  - timestamp       : Get current UTC timestamp in various formats
-  - url_parse       : Parse and decompose a URL into its components
-  - diff_text       : Compute unified diff between two text blocks
-  - estimate_tokens : Estimate token count for a given model
-  - web_search      : Google web search via Serper API
-"""
 from dataclasses import dataclass, field
 from typing import Any, Callable, Awaitable, Optional
 import asyncio
