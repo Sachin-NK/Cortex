@@ -1,8 +1,4 @@
 from __future__ import annotations
-"""
-Task Classifier — classifies incoming requests by type, complexity,
-and capability requirements so the router can make better decisions.
-"""
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional, List
