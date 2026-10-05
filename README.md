@@ -19,14 +19,6 @@ cd frontend && npm install && npm run dev
 
 Open http://localhost:3000, go to `/keys` to add your API keys.
 
-## Deploy (Vercel - free)
-
-1. Fork this repo
-2. Import at [vercel.com/new](https://vercel.com/new)
-3. Set framework to **Services**
-4. Add env vars: `PRIVACY_TIER=standard`, `CORTEX_STATE_DB=/tmp/cortex_state.db`
-5. Deploy
-
 ## Providers
 
 | Provider | Use | Header |
