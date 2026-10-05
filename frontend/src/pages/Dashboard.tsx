@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { api, Dashboard as DashboardData, Provider } from '../api'
-import { Activity, DollarSign, Bot, Wrench, Cpu, Wifi } from 'lucide-react'
+import { keyStore, PROVIDER_DEFS } from '../api'
+import { Activity, DollarSign, Bot, Wrench, Cpu, Wifi, Key } from 'lucide-react'
+import { useKeys } from '../context/KeysContext'
 
 function StatCard({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: any; color: string }) {
   return (
@@ -24,6 +26,13 @@ function HealthBadge({ status }: { status: string }) {
 export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [providers, setProviders] = useState<Provider[]>([])
+  const { keysVersion } = useKeys()
+
+  // Keys stored locally in browser (sent as headers, not known to backend)
+  const localKeys = PROVIDER_DEFS.filter(p => {
+    const e = keyStore.get(p.id)
+    return e && e.key && e.enabled
+  })
 
   useEffect(() => {
     api.dashboard().then(setData).catch(console.error)
@@ -32,7 +41,7 @@ export default function Dashboard() {
       api.dashboard().then(setData).catch(console.error)
     }, 10000)
     return () => clearInterval(id)
-  }, [])
+  }, [keysVersion])
 
   if (!data) return <div className="p-8 text-gray-500">Loading dashboard...</div>
 
@@ -60,9 +69,20 @@ export default function Dashboard() {
               <span className="ml-auto text-xs text-gray-500">{status}</span>
             </div>
           ))}
-          {Object.keys(data.provider_health).length === 0 && (
-            <p className="text-gray-600 text-sm col-span-3">No providers configured. Add API keys to .env</p>
+          {Object.keys(data.provider_health).length === 0 && localKeys.length === 0 && (
+            <div className="col-span-3 flex items-center gap-2 text-sm text-gray-600">
+              <Key size={13} />
+              No providers configured. Add your API keys in the{' '}
+              <a href="/keys" className="text-indigo-400 hover:text-indigo-300 underline">API Keys</a> tab.
+            </div>
           )}
+          {Object.keys(data.provider_health).length === 0 && localKeys.map(p => (
+            <div key={p.id} className="flex items-center text-sm">
+              <span className="inline-block w-2 h-2 rounded-full bg-indigo-400 mr-2" />
+              <span className="capitalize font-medium">{p.name}</span>
+              <span className="ml-auto text-xs text-indigo-400">key saved</span>
+            </div>
+          ))}
         </div>
       </div>
 
