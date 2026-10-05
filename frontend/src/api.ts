@@ -218,6 +218,7 @@ export const api = {
   runAgent: (agent_id: string, input: string, policy: PolicyType) =>
     post<{ run_id: string; trace_id: string; status: string; agent: string }>('/agents/run', { agent_id, input, policy }),
   runStatus: (run_id: string) => get<RunStatus>(`/agents/runs/${run_id}`),
+  listRuns: () => get<RunStatus[]>('/agents/runs'),
   runOutput: (run_id: string) => get<{ final_output: string; step_outputs: Record<string, string> }>(`/agents/runs/${run_id}/output`),
   approveStep: (run_id: string, step_id: string) =>
     post<{ approved: boolean }>('/agents/runs/approve', { run_id, step_id }),
