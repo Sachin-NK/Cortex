@@ -93,9 +93,15 @@ async function post<T>(path: string, body: unknown): Promise<T> {
     body: JSON.stringify(body),
   })
   if (!res.ok) {
-    const msg = await res.text().catch(() => `HTTP ${res.status}`)
-    globalToast.error(`Request failed (${res.status})`, msg.slice(0, 120))
-    throw new Error(msg)
+    const raw = await res.text().catch(() => `HTTP ${res.status}`)
+    // Try to extract a human-readable message from structured error responses
+    let userMsg = raw
+    try {
+      const parsed = JSON.parse(raw)
+      userMsg = parsed?.detail?.detail ?? parsed?.detail ?? parsed?.message ?? raw
+    } catch {}
+    globalToast.error(`Request failed (${res.status})`, userMsg.slice(0, 160))
+    throw new Error(userMsg)
   }
   return res.json()
 }

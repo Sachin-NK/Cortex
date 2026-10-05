@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { api } from '../api'
+import { api, keyStore, PROVIDER_DEFS } from '../api'
 import type { Provider } from '../api'
-import { RefreshCw, CheckCircle, AlertCircle, XCircle } from 'lucide-react'
+import { RefreshCw, CheckCircle, AlertCircle, XCircle, Key } from 'lucide-react'
+import { useKeys } from '../context/KeysContext'
 
 function CapBadge({ label, active }: { label: string; active: boolean }) {
   return (
@@ -21,6 +22,14 @@ function StatusIcon({ status }: { status: string }) {
 export default function Providers() {
   const [providers, setProviders] = useState<Provider[]>([])
   const [loading, setLoading] = useState(false)
+  const { keysVersion } = useKeys()
+
+  // Derive which providers have a key stored locally so we can show them
+  // even when the backend returns an empty list (keys sent per-request as headers)
+  const localKeyIds = PROVIDER_DEFS.filter(p => {
+    const e = keyStore.get(p.id)
+    return e && e.key && e.enabled
+  }).map(p => p.id)
 
   const load = async () => {
     setLoading(true)
@@ -28,7 +37,8 @@ export default function Providers() {
     finally { setLoading(false) }
   }
 
-  useEffect(() => { load() }, [])
+  // Re-fetch whenever keys change (triggered by KeysSettings)
+  useEffect(() => { load() }, [keysVersion])
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
@@ -40,20 +50,28 @@ export default function Providers() {
       </div>
 
       {providers.length === 0 && !loading && (
-        <div className="text-center py-20 text-gray-600">
-          <p className="text-lg mb-2">No providers configured</p>
-          <p className="text-sm">Add API keys to your .env file and restart the backend</p>
-          <pre className="mt-4 text-left inline-block bg-gray-900 rounded-lg p-4 text-xs text-gray-400">
-{`OPENAI_API_KEY=sk-...
-ANTHROPIC_API_KEY=sk-ant-...
-GEMINI_API_KEY=...
-DEEPSEEK_API_KEY=...
-KIMI_API_KEY=...`}
-          </pre>
+        <div className="text-center py-20 text-gray-500">
+          {localKeyIds.length === 0 ? (
+            <>
+              <Key size={36} className="mx-auto mb-4 text-gray-700" />
+              <p className="text-lg mb-1">No providers configured</p>
+              <p className="text-sm mb-4">Add your API keys in the <span className="text-indigo-400">API Keys</span> tab to get started.</p>
+            </>
+          ) : (
+            <>
+              <RefreshCw size={36} className="mx-auto mb-4 text-gray-700" />
+              <p className="text-lg mb-1">Keys saved — waiting for backend</p>
+              <p className="text-sm">
+                Keys for <span className="text-indigo-400">{localKeyIds.join(', ')}</span> are stored locally.
+                They are sent as headers on each request — the backend may not list them until a request is made.
+              </p>
+            </>
+          )}
         </div>
       )}
 
       <div className="space-y-4">
+        {/* Backend-reported providers */}
         {providers.map(p => (
           <div key={p.id} className="bg-gray-900 border border-gray-800 rounded-xl p-5">
             <div className="flex items-center justify-between mb-4">
@@ -95,6 +113,33 @@ KIMI_API_KEY=...`}
             </div>
           </div>
         ))}
+
+        {/* Locally-configured providers not yet returned by the backend */}
+        {localKeyIds
+          .filter(id => !providers.some(p => p.id === id))
+          .map(id => {
+            const def = PROVIDER_DEFS.find(p => p.id === id)!
+            return (
+              <div key={id} className="bg-gray-900 border border-gray-800 rounded-xl p-5 opacity-75">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3.5 h-3.5 rounded-full border-2 border-gray-600" />
+                    <div>
+                      <h3 className="font-semibold">{def.name}</h3>
+                      <p className="text-xs text-gray-500">{def.models.slice(0, 3).join(', ')}</p>
+                    </div>
+                  </div>
+                  <span className="text-xs px-2 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                    Key saved · ready
+                  </span>
+                </div>
+                <p className="mt-3 text-xs text-gray-600">
+                  Key is stored in your browser and will be used on the next request. Backend health status will appear after the first call.
+                </p>
+              </div>
+            )
+          })
+        }
       </div>
     </div>
   )
