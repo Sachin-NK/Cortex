@@ -18,6 +18,7 @@ import KeysSettings from './pages/KeysSettings'
 import OptimizationSettings from './pages/OptimizationSettings'
 import Onboarding from './pages/Onboarding'
 import { keyStore } from './api'
+import { KeysProvider } from './context/KeysContext'
 
 const nav = [
   { to: '/',            label: 'Dashboard',    icon: LayoutDashboard },
@@ -58,6 +59,7 @@ export default function App() {
   }
 
   return (
+    <KeysProvider>
     <div className="flex h-screen overflow-hidden bg-gray-950 text-gray-100">
       {/* Sidebar */}
       <aside className="w-[200px] bg-gray-900 border-r border-gray-800 flex flex-col py-5 px-2 shrink-0">
@@ -109,5 +111,6 @@ export default function App() {
         </Routes>
       </main>
     </div>
+    </KeysProvider>
   )
 }

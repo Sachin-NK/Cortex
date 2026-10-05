@@ -58,6 +58,28 @@ app.add_middleware(
     expose_headers=["X-Request-Id"],
 )
 
+# -- Global error handlers ------------------------------------------------------
+from fastapi.responses import JSONResponse
+
+@app.exception_handler(RuntimeError)
+async def runtime_error_handler(request: Request, exc: RuntimeError):
+    msg = str(exc)
+    # No providers available → tell the client clearly what to do
+    if "No providers available" in msg:
+        return JSONResponse(
+            status_code=422,
+            content={
+                "error": "no_providers",
+                "detail": (
+                    "No AI providers are available. "
+                    "Add at least one API key in the API Keys tab, "
+                    "or set a provider environment variable (e.g. OPENROUTER_API_KEY) "
+                    "in your Vercel project settings."
+                ),
+            },
+        )
+    return JSONResponse(status_code=500, content={"error": "internal_error", "detail": msg})
+
 # All routes go on this router with /api prefix so Vercel rewrite works.
 # Vercel sends /api/xxx to backend which receives /api/xxx,
 # FastAPI routes are at /api/xxx -> match.
@@ -860,7 +882,7 @@ def _build_ide_messages(req: "CodeActionRequest") -> List[Dict]:
 
 
 @api_router.post("/ide/action")
-async def code_action(req: CodeActionRequest):
+async def code_action(req: CodeActionRequest, request: Request):
     """
     Run an AI code action with rich context.
     The backend reads the full file from disk if file_path is provided,
@@ -889,9 +911,24 @@ async def code_action(req: CodeActionRequest):
 
     max_tokens = 4096 if req.action in ("test", "complete", "refactor") else 2048
 
+    # Use per-request router so user-supplied header keys are included
+    req_providers = _get_request_providers(request)
+    if not req_providers:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "error": "no_providers",
+                "detail": (
+                    "No AI providers are available. "
+                    "Add at least one API key in the API Keys tab."
+                ),
+            },
+        )
+    req_router = _build_request_router(req_providers)
+
     llm_req = LLMRequest(messages=messages, max_tokens=max_tokens)
     trace = trace_store.create(workflow_id="ide", user_request=f"{req.action} · {req.language} · {req.file_path or 'snippet'}")
-    response, decision = await router.execute_with_fallback(
+    response, decision = await req_router.execute_with_fallback(
         llm_req, policy, agent="ide", trace=trace,
     )
     trace.complete()

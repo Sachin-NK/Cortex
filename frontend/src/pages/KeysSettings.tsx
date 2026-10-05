@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Key, Eye, EyeOff, Check, Trash2, ExternalLink, AlertTriangle, Shield, Save, Circle } from 'lucide-react'
 import { keyStore, PROVIDER_DEFS } from '../api'
 import type { StoredKey } from '../api'
+import { useKeys } from '../context/KeysContext'
 
 const TIERS = [
   { id: 'standard',  label: 'Standard',  desc: 'All providers available. Best for general use.' },
@@ -173,6 +174,7 @@ function ProviderCard({ def, stored, onSave, onDelete }: {
 export default function KeysSettings() {
   const [keys, setKeys] = useState<Record<string, StoredKey | null>>({})
   const [tier, setTier] = useState(() => localStorage.getItem('cortex_privacy_tier') ?? 'standard')
+  const { bumpKeys } = useKeys()
 
   const reload = () => {
     const result: Record<string, StoredKey | null> = {}
@@ -185,11 +187,13 @@ export default function KeysSettings() {
   const handleSave = (id: string, key: string) => {
     keyStore.set(id, key)
     reload()
+    bumpKeys()
   }
 
   const handleDelete = (id: string) => {
     keyStore.remove(id)
     reload()
+    bumpKeys()
   }
 
   const handleTier = (t: string) => {
