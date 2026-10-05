@@ -14,24 +14,40 @@ function statusBadge(status: string) {
 }
 
 export default function WorkflowRuns() {
-  // In a real app you'd persist run IDs in local state or a store.
-  // Here we demo by polling the runs stored on the backend.
-  const [runIds] = useState<string[]>(() => {
-    try { return JSON.parse(localStorage.getItem('runIds') || '[]') } catch { return [] }
-  })
   const [runs, setRuns] = useState<RunStatus[]>([])
   const [loading, setLoading] = useState(false)
 
   const load = async () => {
     setLoading(true)
-    const results = await Promise.allSettled(runIds.map(id => api.runStatus(id)))
-    setRuns(results.flatMap(r => r.status === 'fulfilled' ? [r.value] : []))
-    setLoading(false)
+    try {
+      // Fetch all live runs from backend
+      const liveRuns = await api.listRuns()
+
+      // Also check locally stored run IDs, silently drop any that 404 (stale)
+      const storedIds: string[] = (() => {
+        try { return JSON.parse(localStorage.getItem('runIds') || '[]') } catch { return [] }
+      })()
+      const liveIds = new Set(liveRuns.map(r => r.run_id))
+      const extraIds = storedIds.filter(id => !liveIds.has(id))
+
+      const extraResults = await Promise.allSettled(extraIds.map(id => api.runStatus(id)))
+      const validExtras = extraResults.flatMap((r, i) => {
+        if (r.status === 'fulfilled') return [r.value]
+        // stale — remove from localStorage
+        const cleaned = storedIds.filter(id => id !== extraIds[i])
+        localStorage.setItem('runIds', JSON.stringify(cleaned))
+        return []
+      })
+
+      setRuns([...liveRuns, ...validExtras])
+    } finally {
+      setLoading(false)
+    }
   }
 
-  useEffect(() => { if (runIds.length) load() }, [runIds])
+  useEffect(() => { load() }, [])
 
-  if (runIds.length === 0) {
+  if (!loading && runs.length === 0) {
     return (
       <div className="p-8 text-center text-gray-600 mt-24">
         <p className="text-lg mb-2">No workflow runs yet</p>
